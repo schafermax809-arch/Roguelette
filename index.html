@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#235947">
+<title>Roguelette · Der Tisch wartet</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+<a class="brand" href="./index.html" aria-label="Roguelette Start"><span class="brand-icon">♠</span> ROGUELETTE<span class="edition">ROULETTE. ABER ROGUELIKE.</span></a>
+<div class="top-actions"><button id="open-menu" class="quiet" aria-label="Hauptmenü öffnen">☰</button><button id="show-map" class="quiet">♧ Floor-Map · 0 Münzen</button><button id="sound" class="quiet" aria-pressed="false">Ton aus</button><button id="help" class="quiet">Spielregeln ?</button></div>
+</header>
+<div class="table-heading"><div><p class="eyebrow">SETZEN · DREHEN · ÜBERLEBEN</p><h1>Ein guter Run beginnt am Tisch.</h1></div><div class="relic-tray"><span>RELICS →</span><div id="relic-slots" aria-label="Relics in Auswertungsreihenfolge"></div></div><span class="table-number" id="table-number">TISCH 01</span></div>
+<main class="game-layout">
+<section class="panel bets-panel" aria-labelledby="bets-title">
+<div class="section-heading"><h2 id="bets-title">SETZEN</h2><span>♠ ♥ ♣ ♦</span></div>
+<p class="muted small">Chip wählen. Feld anklicken.</p>
+<div class="outside-bets" id="outside-bets"></div>
+<div class="section-label">EINE ZAHL <span>100 Basispunkte</span></div>
+<div class="number-bets" id="number-bets"></div>
+<div class="bet-bottom"><span id="bet-count">0 / 1 gesetzt</span><button id="clear" class="text-button">Alle zurück</button></div>
+</section>
+<section class="wheel-panel" aria-label="Roulette">
+<div id="boss-banner" class="boss-banner" hidden role="status"><span>♛ BOSS AKTIV</span><strong>DOUBLE ZERO</strong><p id="boss-rule"></p></div>
+<div class="wheel-caption"><span class="live-dot"></span> <span id="wheel-status">DER TISCH WARTET</span></div>
+<div class="wheel-stage"><div class="wheel-pointer"></div><div class="wheel-shell"><div class="roulette-wheel" id="wheel"></div><div class="wheel-hub"><span>ROGUELETTE</span><strong>♠</strong><span>GOOD LUCK!</span></div></div></div>
+<div class="result-display" aria-live="polite"><span class="result-label">LETZTES ERGEBNIS</span><strong id="result">—</strong><span id="result-detail">19 Felder. Eine Chance mehr.</span></div>
+<div class="history" id="history" aria-label="Letzte Ergebnisse"></div>
+</section>
+<aside class="panel stats-panel">
+<div class="section-heading"><h2>DEIN RUN</h2><span>★</span></div>
+<div class="score-label">PUNKTE</div><div class="score" id="score">0</div>
+<div class="target-row"><span id="target-label">Ziel: 20</span><span id="progress-label">0 %</span></div><progress id="progress" max="20" value="0" aria-label="Fortschritt zum Rundenziel"></progress>
+<div class="spins-row"><span>SPINS</span><strong id="spins">5</strong></div><div id="spin-dots" class="spin-dots" aria-hidden="true"></div>
+<div class="luck-row"><span title="Luck verbessert Token-Seltenheiten, nicht das Roulette.">♣ LUCK</span><strong id="luck">0</strong><button id="open-tokens" class="quiet" title="Slot-Tokens öffnen">✦ 0</button></div>
+<div class="wheel-tools"><span class="tool-label">RAD-ITEMS <b id="wheel-count">19 FELDER</b></span><div id="items" class="item-slots" aria-label="Rad-Items"></div></div>
+<div class="spin-summary"><button id="show-scoring" class="score-details-button" disabled>AUSWERTUNG ↗</button><strong id="spin-score">+0</strong></div>
+<ul id="breakdown" class="breakdown"><li>Deine Gewinne erscheinen hier.</li></ul>
+<div class="status" id="status" role="status">Wähle deinen ersten Chip.</div>
+<button id="spin" class="spin-button" disabled>RAD DREHEN <span>↗</span></button>
+<p class="small muted centered">Wetten bleiben bis zur Rücknahme liegen.</p>
+</aside>
+<section class="panel inventory">
+<div class="inventory-heading"><div class="section-heading"><h2>Deine Chips</h2><span id="capacity-label">1 / 6</span><button id="edit-build" class="text-button">Chip-Details</button></div><span class="muted small">Gesetzten Chip anklicken, um ihn zurückzuholen.</span></div>
+<div class="chip-rack" id="chips"></div>
+<div class="chip-info" id="chip-info" aria-live="polite"><strong>Ein Chip. Viele Möglichkeiten.</strong><span>Wähle einen Chip, um seinen Effekt zu sehen.</span></div>
+<div id="chip-mutations" class="chip-mutations"></div>
+</section>
+</main>
+<footer class="page-footer"><span>♠ NUR NOCH EIN RUN.</span><span>1–9 CHIP WÄHLEN · ESC AUSWAHL LÖSEN</span><span>KEIN GELD. NUR PUNKTE.</span></footer>
+</div>
+<dialog id="help-dialog"><div class="dialog-header"><p class="eyebrow">SO WIRD GESPIELT</p><button id="close-help" class="quiet" aria-label="Spielregeln schließen">✕</button></div><h2>Baue dein Glück.</h2><p>Du startest mit einem Basic-Chip und fünf freien Chip-Plätzen. Der erste Tisch verlangt 20 Punkte in fünf Spins; ein Treffer auf einer Außenwette reicht. Wähle einen Chip und platziere ihn auf einer Zahl oder einer Außenwette. Mehrere Chips dürfen auf demselben Feld liegen.</p><ul><li>Zahlentreffer: <b>100 Basispunkte</b>.</li><li>Außenwette: <b>20 Basispunkte</b>, zusätzlich passende Chip-Boni.</li><li>LOW = 1–9, HIGH = 10–18. Am Anfang sind ungerade Zahlen rot und gerade Zahlen schwarz; Rad-Items können das verändern.</li><li>Die <b>0</b> gewinnt nur eine Zahlenwette. Ihr Spin-Ergebnis wird mit <b>0,75</b> multipliziert.</li><li>Die Streak wächst bei Treffern und endet bei einem Verlust. Zwischen gewonnenen Tischen bleibt sie erhalten.</li></ul><p>Nach einem gewonnenen Tisch erhältst du automatisch Münzen. „Weiter zur Map“ öffnet deine Route. Fahre über ein Symbol oder tippe es an, um Regeln und Münzgewinn zu sehen. „Betreten“ setzt deinen Weg fort.</p><p>Im Shop kaufst du Token-Karten. Wähle eine Karte und kaufe den Token. An der Slot-Machine erhältst du dafür dein Upgrade. Du bekommst keine zusätzliche Belohnungsauswahl nach einem Tisch. Alle Änderungen bleiben im Run erhalten.</p><p>Neue Chips tragen mit 10 % Chance bereits eine zufällige Mutation. Mutationen sind nicht kaufbar; der Startchip hat keine. Polished: ×1,5 Punkte. Echo: 25 % Chance auf eine Zusatzwertung. Lucky: +1 Luck für höhere Token-Seltenheiten. Expanded: +1 Chip-Platz. Maximal zwei Rad-Items und vier Relics. Relics werden von links nach rechts nach den Chips ausgewertet. Zum Schluss gilt bei Null ×0,75.</p><p>Grüner Tisch: 40 Punkte in sechs Spins. High Stakes: 60 Punkte in fünf Spins. Letzter Einsatz: 80 Punkte in sechs Spins. Der Boss Double Zero: 120 Punkte in sieben Spins und zwei temporäre Nullfelder. Danach folgen High Roller, VIP und das Penthouse. Vor The House wartet ein letzter Shop mit um 2 Münzen reduzierten Token-Preisen. The House wechselt nach drei und sechs Spins seine Regel: Hausanteil, Steuer und beides zusammen. Erreiche 1.000 Punkte in acht Spins. Nach dem Sieg kannst du deinen Build nach Endless mitnehmen: neue Floors mit steigenden Zielen und wechselnden Bossen. Eine spätere Niederlage löscht den normalen Sieg nicht. Bestwerte bleiben lokal gespeichert; auch der aktive Run wird automatisch gespeichert und kann nach Neuladen fortgesetzt werden. The Taxman zieht pro verlorenem Chip 10 Punkte ab, maximal 25 % des Spin-Scores. The Minimalist erlaubt höchstens drei gesetzte Chips. Nur eingezeichnete Map-Verbindungen sind begehbar; der gesamte Build bleibt zwischen Floors erhalten. Das Hauptmenü pausiert deinen Run in dieser Sitzung; Neuladen stellt den zuletzt gespeicherten Run wieder her.</p><p>Slot Tokens kaufst du im Shop: Standard 6, Chip Token 8, Relic Token 10 Münzen. Öffne deine Token-Tasche über ✦. Wähle einen Token und ziehe den Hebel. Erst der Hebel verbraucht den Token und würfelt Art, Seltenheit und Upgrade genau einmal aus. Bei vollem Inventar wählst du einen Ersatz oder verwirfst das Ergebnis. Lucky verschiebt je Luck zwei Prozentpunkte von Common zu höheren Seltenheiten (bis 10 Luck); die genauen Chancen stehen in der Slot-Machine.</p><p class="muted">Tastatur: 1–9 wählen einen verfügbaren Chip nach seiner Position im Inventar. Tab navigiert, Enter setzt oder aktiviert. Esc löst die Auswahl.</p></dialog>
+<dialog id="build-dialog" aria-labelledby="build-title">
+<div class="dialog-header"><p class="eyebrow">EIN BASIC. DEIN BUILD.</p><button id="close-build" class="quiet" aria-label="Chip-Details schließen">Fertig ✕</button></div>
+<h2 id="build-title">Deine Chips & Mutationen</h2>
+<p id="build-description">Weitere Chips erhältst du mit Shop-Tokens.</p>
+<div id="build-catalog" class="build-catalog"></div>
+</dialog>
+<dialog id="workshop-dialog" aria-labelledby="workshop-title">
+<div class="dialog-header"><p class="eyebrow">DAS RAD GEHÖRT DIR</p><button id="close-workshop" class="quiet" aria-label="Werkstatt schließen">✕</button></div>
+<h2 id="workshop-title">Rad verändern</h2><p id="workshop-description"></p>
+<p class="muted">Jede Kachel ist ein einzelnes Radfeld. Grenzen: 6–38 Felder. Erst „Anwenden“ verbraucht das Item.</p>
+<label id="rewrite-control" hidden>Neue Zahl <input id="rewrite-number" type="number" min="0" max="18" step="1" value="7"></label>
+<div id="wheel-fields" class="wheel-fields" aria-label="Einzelne Radfelder"></div>
+<p id="workshop-feedback" role="status">Wähle ein Feld.</p>
+<div class="dialog-actions"><button id="reset-workshop" class="quiet">Auswahl lösen</button><button id="apply-item" class="spin-button">Anwenden</button></div>
+</dialog>
+<dialog id="relic-dialog" aria-labelledby="relic-title">
+<div class="dialog-header"><p class="eyebrow">VIER PLÄTZE. VIELE KOMBINATIONEN.</p><button id="close-relics" class="quiet" aria-label="Relics schließen">✕</button></div>
+<h2 id="relic-title">Deine Relics</h2>
+<p>Relics gelten für den gesamten Run und werden von links nach rechts nach den Chips ausgewertet. Verschieben verändert die Reihenfolge. Während einer Drehung ist die Reihenfolge gesperrt.</p>
+<p class="relic-order-example">Beispiel bei einer roten 7 und 100 Chip-Punkten: Blood Pact → Lucky Seven = 250. Umgekehrt = 300.</p>
+<p id="relic-feedback" role="status"></p><div id="relic-catalog" class="relic-catalog"></div>
+</dialog>
+<dialog id="scoring-dialog" aria-labelledby="scoring-title">
+<div class="dialog-header"><p class="eyebrow">SO ENTSTEHEN DEINE PUNKTE</p><button id="close-scoring" class="quiet" aria-label="Spin-Auswertung schließen">✕</button></div>
+<h2 id="scoring-title">Letzter Spin</h2><p id="scoring-context"></p>
+<ol id="scoring-steps" class="scoring-steps"></ol>
+<p class="muted">Reihenfolge: Chips inklusive Mutationen → Relics von links nach rechts → gegebenenfalls Null ×0,75. Erst das Endergebnis wird auf zwei Nachkommastellen gerundet.</p>
+</dialog>
+<dialog id="map-dialog" aria-labelledby="map-title">
+<div class="dialog-header"><p class="eyebrow">FLOOR 01 · CASINO</p><button id="close-map" class="quiet">Zum Tisch ✕</button></div>
+<h2 id="map-title">Wähle deinen Weg.</h2><p id="map-description"></p>
+<div class="route-layout"><div id="floor-map" class="floor-map"></div><aside class="route-inspector"><span id="map-room-icon" class="route-detail-icon"></span><h3 id="map-room-name">Dein nächster Zug</h3><p id="map-room-detail">Über ein Symbol fahren oder antippen.</p><p id="map-room-state"></p><button id="enter-map-room" class="spin-button" disabled>Raum wählen</button></aside></div><div class="map-legend">♠ Tisch · ♦ High Stakes · ▱ Shop · ⚒ Werkstatt · ? Ereignis · ♛ Boss</div><p id="map-feedback" role="status"></p>
+</dialog>
+<dialog id="room-dialog" aria-labelledby="room-title">
+<p class="eyebrow" id="room-eyebrow">ZWISCHEN DEN TISCHEN</p><h2 id="room-title"></h2><p id="room-description"></p><div id="room-actions" class="room-actions"></div><p id="room-feedback" role="status"></p>
+</dialog>
+<dialog id="start-screen" aria-labelledby="start-title">
+<div class="title-art" aria-hidden="true"><div class="title-orbit"></div><div class="title-card card-one">♠</div><div class="title-card card-two">7</div><div class="title-card card-three">♣</div><span class="title-chip chip-one">♦</span><span class="title-chip chip-two">★</span></div>
+<div class="title-content"><p class="eyebrow">EIN RAD. DEIN BUILD. DEIN RUN.</p><h1 id="start-title">ROGUE<span>LETTE</span></h1><p class="title-tagline">Fordere das Haus heraus.</p><div class="title-actions"><button id="resume-run" class="spin-button" hidden>WEITERSPIELEN →</button><button id="start-run" class="spin-button">RUN STARTEN ♠</button><button id="open-collection" class="quiet">Freischaltungen ✦</button><button id="open-records" class="quiet">Bestwerte ♛</button><button id="menu-help" class="quiet">So wird gespielt</button></div><p id="save-status" role="status"></p><p class="title-footnote">4 FLOORS · THE HOUSE<br><span>Ein Basic-Chip. Dein eigener Weg.</span></p></div>
+<span class="title-version">ROGUELETTE · V1.0</span>
+</dialog>
+<dialog id="token-dialog" aria-labelledby="token-title">
+<div class="dialog-header"><h2 id="token-title">DAS GLÜCKSBLATT</h2><button id="close-tokens" class="quiet" aria-label="Slot-Machine schließen">✕</button></div>
+<div id="token-inventory" class="token-inventory"></div>
+<div id="slot-machine"><div class="slot-cabinet"><div class="slot-marquee"><i></i><strong id="slot-status">TOKEN EINLEGEN</strong><i></i></div><div class="slot-mechanism"><div class="slot-reels"><div class="slot-reel"><span>ART</span><div class="reel-window"><div id="reel-type" class="reel-strip"></div></div></div><div class="slot-reel"><span>SELTENHEIT</span><div class="reel-window"><div id="reel-rarity" class="reel-strip"></div></div></div><div class="slot-reel"><span>UPGRADE</span><div class="reel-window"><div id="reel-upgrade" class="reel-strip"></div></div></div></div><button id="slot-lever" class="slot-lever" aria-label="Slot drehen" disabled><span class="lever-arm"><i>♠</i></span><b>ZIEHEN</b></button></div><div class="slot-payline" aria-hidden="true">◆ ━━━━━━━━━ ◆</div></div><div id="token-result"></div></div>
+<p id="token-feedback" role="status"></p>
+<details class="token-odds"><summary>♣ Luck & Chancen</summary><p id="token-odds"></p><p>Leerer Pool: nächste niedrigere verfügbare Seltenheit, sonst die nächste höhere. Bereits besessene Relics werden ausgelassen. Legendary: Royal-Chip und Crown-Relic.</p></details>
+</dialog>
+<dialog id="records-dialog" aria-labelledby="records-title"><div class="dialog-header"><h2 id="records-title">Deine Bestwerte</h2><button id="close-records" class="quiet" aria-label="Bestwerte schließen">✕</button></div><div id="records-grid"></div><p id="records-status"></p></dialog>
+<dialog id="collection-dialog" aria-labelledby="collection-title"><div class="dialog-header"><h2 id="collection-title">Deine Freischaltungen</h2><button id="close-collection" class="quiet" aria-label="Freischaltungen schließen">✕</button></div><div id="collection-grid"></div><p id="collection-status"></p></dialog>
+<dialog id="restart-dialog" aria-labelledby="restart-title"><h2 id="restart-title">Neuen Run starten?</h2><p>Der laufende Run wird ersetzt. Freischaltungen und Bestwerte bleiben erhalten.</p><div class="room-actions"><button id="cancel-restart" class="quiet">ZURÜCK</button><button id="confirm-restart" class="spin-button">RUN VERWERFEN & NEU STARTEN</button></div></dialog>
+</body>
+</html>
