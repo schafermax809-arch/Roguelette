@@ -33,7 +33,61 @@ html.touch-device{ -webkit-text-size-adjust:100%;text-size-adjust:100% }
  .touch-device .workbench-layout{grid-template-columns:minmax(0,1.2fr) minmax(210px,1fr)}.touch-device .workbench-stage .wheel-fields{grid-template-columns:repeat(6,minmax(0,1fr))}.touch-device .title-content{width:70%}.touch-device .title-art{opacity:.45;width:60vw;right:-8vw}
 }
 @media(min-width:701px) and (max-width:1400px) and (max-height:760px){
- .touch-device .wheel-stage{max-width:230px}.touch-device .game-layout{grid-template-rows:auto auto}.touch-device .floor-map,.touch-device .floor-map.extended-map{height:460px;min-height:460px}.touch-device .workbench-wheel{width:165px}.touch-device .workbench-stage{gap:10px}.touch-device .workbench-tools{margin:8px 0 12px}.touch-device .stats-panel .score{font-size:38px}
+ .touch-device .wheel-stage{max-width:230px}.touch-device .floor-map,.touch-device .floor-map.extended-map{height:460px;min-height:460px}.touch-device .workbench-wheel{width:165px}.touch-device .workbench-stage{gap:10px}.touch-device .workbench-tools{margin:8px 0 12px}.touch-device .stats-panel .score{font-size:38px}
+}
+/* Landscape table: budget the current Safari viewport, including its browser bars.
+   Keep the portrait/phone document flow and dialog scrolling independent. */
+@media(min-width:1100px) and (max-width:1400px) and (orientation:landscape){
+ html.touch-device,.touch-device body{height:100vh;height:100dvh;min-height:0}
+ .touch-device .app{
+  height:100vh;height:100dvh;min-height:0;
+  padding:max(8px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+  grid-template-rows:auto auto minmax(0,1fr);gap:8px;
+ }
+ .touch-device .topbar,.touch-device .top-actions,.touch-device .table-heading{flex-wrap:nowrap}
+ .touch-device .relic-slot{height:32px}
+ .touch-device .table-heading .table-number{padding:5px 10px}
+ .touch-device .game-layout{
+  grid-template-rows:minmax(0,1fr) auto;gap:8px 16px;
+  padding:20px 18px 12px;
+ }
+ .touch-device .game-layout>*,.touch-device .wheel-panel{min-height:0}
+ .touch-device .inventory{min-height:0;padding-top:6px}
+ .touch-device .inventory .chip-rack{--rack-chip:clamp(44px,calc(10dvh - 24px),56px);padding-top:7px}
+ .touch-device .inventory .text-button,.touch-device .bet-bottom .text-button{min-height:32px;padding:4px 8px}
+ .touch-device .outside-bets .bet-cell,.touch-device .number-bets .bet-cell{min-height:44px;gap:0}
+ .touch-device .outside-bets .bet-target,.touch-device .number-bets .bet-target{min-height:42px}
+ /* Placed chips share a cell with its label instead of adding a second tall row. */
+ .touch-device .bet-cell:has(.bet-stack:not(:empty)){flex-direction:row}
+ .touch-device .bet-cell:has(.bet-stack:not(:empty)) .bet-target{min-height:42px;width:auto;flex:0 0 auto;padding:3px 5px;font-size:14px}
+ .touch-device .bet-stack{flex:1;min-width:0;width:auto;padding:2px;gap:3px}
+ .touch-device .bet-stack .chip-element{width:36px;height:36px;min-width:36px;flex-shrink:0}
+ .touch-device .bet-stack .chip-element span{font-size:17px}
+ .touch-device .bet-bottom{margin-top:6px}
+ .touch-device .wheel-stage{max-width:min(300px,calc(100dvh - 430px))}
+ .touch-device .boss-active .wheel-stage{max-width:min(280px,calc(100dvh - 460px))}
+ .touch-device .result-display{margin-top:8px}
+ .touch-device .history{margin-top:8px}
+ .touch-device .stats-panel{padding:10px}
+ .touch-device .stats-panel .section-heading{padding:6px;margin-bottom:6px}
+ .touch-device .stats-panel .score{font-size:clamp(34px,6dvh,48px);margin:2px 0 5px}
+ .touch-device progress{margin:6px 0 8px;flex-shrink:0}
+ .touch-device .spin-dots{margin:5px 0 7px}
+ .touch-device .luck-row{margin:6px 0}
+ .touch-device .wheel-tools{margin:6px 0}
+ .touch-device .stats-panel .spin-summary{margin:6px 0;padding:4px 8px}
+ .touch-device .stats-panel .status{min-height:0;margin:6px 0}
+ .touch-device .stats-panel .spin-button{min-height:44px;flex-shrink:0}
+}
+@media(min-width:1100px) and (max-width:1400px) and (orientation:landscape) and (max-height:650px){
+ .touch-device .app{gap:6px}
+ .touch-device .game-layout{padding-top:16px;gap:6px 16px}
+ .touch-device .number-bets,.touch-device .outside-bets{gap:0}
+ .touch-device .number-bets .bet-cell{min-height:40px}
+ .touch-device .number-bets .bet-target,.touch-device .number-bets .bet-cell:has(.bet-stack:not(:empty)) .bet-target{min-height:38px}
+ .touch-device .inventory .chip-rack{--rack-chip:44px;padding-top:5px}
+ .touch-device .boss-banner{padding:5px;margin-bottom:5px}
+ .touch-device .boss-banner strong{font-size:15px;margin:2px 0}
 }
 /* Split View below tablet width keeps the existing mobile flow with accessible hit targets. */
 @media(max-width:700px){

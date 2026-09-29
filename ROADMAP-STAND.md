@@ -1,3 +1,14 @@
+# V1.4.1: Safari-Viewport-Fix
+
+Stand: 29.09.2026. Reiner CSS-Fix am bestehenden Spiel; Spielregeln und Save-Format unverändert.
+
+- Ursache: `body` hatte `min-height:100vh`; Tablet-`.app` ersetzte die feste Desktop-Höhe durch `height:auto;min-height:100dvh`. Feste Mindesthöhen, große Zell-Stacks und content-basierte Grid-Zeilen ließen den Inhalt wachsen. Der bisherige Test erlaubte vertikales Scrollen: bei 1180 × 720 wurden 775 Pixel Seitenhöhe gemessen.
+- `tablet.css`: `html`, `body` und `.app` nutzen im dreispaltigen Touch-Querformat die aktuelle dynamische Viewport-Höhe. App-Zeilen teilen das verfügbare Budget auf, der Spielbereich verwendet `minmax(0,1fr)` plus eine inhaltsgroße Chip-Zeile. Safe Areas, Rahmen und Außenabstände liegen innerhalb dieses Budgets.
+- Kompaktere Relic-Leiste, Abstände, Run-Anzeige und Chip-Rack; Radgröße folgt der verfügbaren Höhe, mit zusätzlichem Platz für den Boss. Gesetzte Chips stehen neben ihrem Feldlabel und erzeugen keine zusätzliche hohe Zeile. Unter 651 Pixeln Höhe schrumpfen Zahlenfelder und Abstände etwas weiter. Rücknahme-Chips sind im Querformat 36 Pixel groß; Dialoge und Hauptaktionen behalten ihre größeren Touch-Ziele.
+- Keine globale Overflow-Sperre, keine Skalierung, keine neue Geräteerkennung und kein Layout-JavaScript. Desktop ohne Touch, Hochformat und Telefon-Layouts behalten ihre bisherigen Regeln. Dialoge dürfen weiterhin innerhalb ihrer eigenen Höhe scrollen.
+- Neuer Test `tests/safari-viewport.cjs`: Höhen 600, 650, 680, 700, 720, 744, 780 und 820 bei 1180 Breite; zusätzlich vier iPad-Pro-Querformate. Prüft Seitenmaße, Panel-Grenzen, drei Spalten, Hit-Tests der Buttons, Basic/gesetzte Chips, vollen Build, Boss, Spin, Reload und Rotation in WebKit und Chromium. Der bestehende Tablet-Test prüft nun auch vertikalen Seitenüberlauf im dreispaltigen Querformat.
+- 128 Modelltests sowie Desktop-/Telefon-Regressionssuite bestanden. Prüfung per Browser-Emulation; kein physischer iPad-Test. Dynamische Einheiten folgen der aktuellen Browserfläche: [WebKit-Dokumentation](https://webkit.org/blog/12445/new-webkit-features-in-safari-15-4/).
+
 # V1.4: iPad- und Touch-Patch
 
 Stand: 29.09.2026. Enthält auch die bisher lokal entwickelten Updates V1.1–V1.3.
