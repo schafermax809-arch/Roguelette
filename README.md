@@ -1,32 +1,44 @@
-# Roguelette — V1.0
+# Roguelette — V1.4 · iPad-Patch
 
-Ein Roulette-Roguelike im Stil eines gezeichneten Pokertischs. Baue deinen Run mit Chips, Relics und seltenen Mutationen auf und fordere The House heraus.
+Ein Roulette-Roguelike auf einem gezeichneten Pokertisch. Starte mit einem Basic-Chip, baue dein Rad und deinen Build um und fordere The House heraus.
 
 ## Spielen
 
-Repository herunterladen und `index.html` in einem aktuellen Browser öffnen oder den Ordner mit einem lokalen Webserver bereitstellen. Kein Build und keine Installation erforderlich.
+`index.html` in einem aktuellen Browser öffnen oder den Ordner mit einem statischen Webserver bereitstellen. Kein Build erforderlich. Für iPad/Safari die bereitgestellte HTTPS-Adresse öffnen; `index.html`, `script.js`, `style.css` und `tablet.css` müssen gemeinsam ausgeliefert werden.
 
-## Features
+## Enthalten
 
-- Vier Floors mit verzweigter Map, Shops, Ereignissen, Werkstätten und Bossen
-- 16 Chips und 12 Relics inklusive freischaltbarer Inhalte
-- Token-Slot mit Chips, Relics und Rad-Items
-- The House mit drei Boss-Phasen und anschließendem Endless-Modus
-- Achievements, Bestwerte und automatisches Speichern mit Backup-Wiederherstellung
-- Responsive Oberfläche, Tastaturbedienung und optionale Sounds
+- Vier Floors, zufällige Routen mit zusätzlicher Etappe, garantierter Shop vor dem Boss und Endless
+- 20 Chips, 16 Relics, sechs explizite Synergien, zufällige Mutationen und Chip-Flüche
+- Gemischte Sofort-Slots, Werkbank mit echter Vorschau und gezielte Rad-Werkzeuge
+- Entscheidungsevents, Freischaltungen, Bestwerte und Autosave mit Backup-Wiederherstellung
+- Eigenes Touch-Layout für iPad 10 und iPad Pro in beiden Ausrichtungen sowie Split View
+- Größere Touch-Ziele, Tablet-Werkstatt mit Feldraster, angepasste Map und Shop-Ansichten
 
-Der Spielstand wird lokal im Browser gespeichert und gilt für dieselbe Spieladresse. Browserdaten löschen entfernt den Spielstand. Es gibt keinen Cloud-Sync.
+Spielstände bleiben lokal im Browser und gelten für dieselbe Spieladresse. Browserdaten löschen entfernt sie. Keine Cloud-Synchronisierung. Alte Saves werden weiter geladen; neue Floors nutzen die längere Route.
 
 ## Tests
 
 Mit Node.js 22 oder neuer:
 
 ```sh
-node --test tests/*.test.cjs
+node --test "tests/*.test.cjs"
 ```
 
-83 Test-Runner-Fälle bestanden. Die mitgelieferten Tests benötigen keine zusätzlichen Pakete. Lokale Browser-QA-Skripte mit maschinenspezifischen Pfaden sind nicht Teil dieses Pakets.
+128 Modelltests. Browser-Tests benötigen zusätzlich Playwright und die passenden Browser:
 
-## Entwicklungsstand
+```sh
+npm install --no-save playwright
+npx playwright install webkit
+node tests/ipad-browser.cjs
+```
 
-Siehe [ROADMAP-STAND.md](ROADMAP-STAND.md) für die genaue Feature-Liste und bisherige Entwicklung.
+Der Tablet-Test verwendet WebKit und Microsoft Edge. Edge muss separat installiert sein; mit `TABLET_ENGINE=webkit` kann ausschließlich WebKit geprüft werden. `TABLET_PROFILE=ipad10` beschränkt auf passende Profile. Die Umgebungsvariablen sind mit der Syntax der jeweiligen Shell zu setzen. Die Standardmatrix prüft 15 Ansichten je Engine, darunter verkleinerte Safari-Fenster und Split View; umfangreichere Dialog-/Kauf-/Werkstatt-Abläufe laufen in sieben repräsentativen Ansichten. Screenshots und Messwerte liegen in `test-results/ipad`.
+
+Weitere aktuelle Browser-Suiten: `polish-browser.cjs`, `build-expansion-browser.cjs`, `build-systems-browser.cjs` (Microsoft Edge). `balance-simulation.cjs` dokumentiert die verwendete einfache Bot-Strategie; Ergebnisse sind keine menschlichen Gewinnraten.
+
+Die iPad-Prüfung erfolgt per Touch-/Viewport-Emulation in WebKit und Chromium. Ein Test auf physischer iPad-Hardware bleibt sinnvoll, insbesondere für Safari-Leisten, virtuelle Tastatur und Split View.
+
+## Patch-Details
+
+[ROADMAP-STAND.md](ROADMAP-STAND.md) enthält die vollständigen Features, Balance-Werte, Save-Kompatibilität und den Versionsverlauf.

@@ -1,0 +1,2 @@
+const g=require('../script.js'),assert=require('node:assert/strict');
+module.exports=function passDetour(s){const room=g.currentRoom(s),node=s.map.flat().find(n=>room.next.includes(n.id)&&n.id.includes('detour-')&&n.type!=='table');if(!node)return;assert(g.enterRoom(s,node.id,()=>0));const e=g.EVENTS.find(e=>e.id===s.eventId);assert(g.resolveRoom(s,node.type==='workshop'||e?.choices?'leave':'safe',()=>0).ok);};

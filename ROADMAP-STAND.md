@@ -1,3 +1,266 @@
+# V1.4: iPad- und Touch-Patch
+
+Stand: 29.09.2026. Enthält auch die bisher lokal entwickelten Updates V1.1–V1.3.
+
+## Tablet-Oberfläche
+- Eigene `tablet.css` für Touch-Geräte zwischen 701 und 1400 CSS-Pixeln. Erkennung über Touch-Punkte bzw. groben Zeiger; keine User-Agent-/Modellnamen-Abfrage. Hardware-Tastaturen und Trackpads schalten ein echtes Touch-Gerät nicht absichtlich aus dem Layout.
+- Querformat: Rad, sechs-spaltige Zahlenwetten und Run-Steuerung nebeneinander; Chips unter Rad und Wetten.
+- Hochformat: Rad und Wetten nebeneinander, darunter zentrierte Chips und eine kompakte dreispaltige Run-Steuerung. Bei knapper Höhe bleibt vertikales Scrollen möglich.
+- Wetten, gesetzte Chips, Hauptaktionen, Relics, Werkzeuge und Werkstattfelder erhalten mindestens 44 CSS-Pixel hohe Touch-Ziele. Gesetzte Chips können durch Antippen wieder zurückgenommen werden.
+- Größere lesbare Schriften und gezielte Abstände; keine Hover-Abhängigkeit. Die normale Desktop-Ansicht bleibt erhalten.
+- Safe-Area-Abstände, `viewport-fit=cover`, dynamische Viewport-Höhe und mindestens 16-Pixel-Eingaben in der Touch-Werkstatt. Pinch-Zoom bleibt erlaubt.
+
+## Map, Shop und Werkstatt
+- Touch-Map mit größeren Knoten und mehr vertikalem Platz. Antippen wählt Details; Betreten bleibt eine eigene Aktion.
+- Shop im Hochformat mit zwei Karten pro Reihe und seitlichem Kaufbereich, im Querformat vier Karten neben der Kaufansicht. Die Aktionsleiste bleibt bei langen Dialogen erreichbar.
+- Werkstatt zeigt Rad und Vorschau plus ein großes Feldraster statt winziger Ring-Knöpfe. Auch 38 Felder lassen sich per Finger auswählen. Ausgewählte Felder sind deutlich umrandet; die Anwendung bleibt am unteren Dialogrand erreichbar.
+- Schmale Split-View-Fenster verwenden den mobilen Ablauf mit vergrößerten Touch-Zielen und einem angepassten Werkstatt-Raster.
+
+## Zielgrößen und Prüfung
+Die CSS-Viewport-Matrix deckt iPad 10 (820 × 1180), iPad Pro 11 (834 × 1194 bzw. 834 × 1210), Pro 12,9 (1024 × 1366) und Pro 13 (1032 × 1376) jeweils in beiden Ausrichtungen ab. Dazu kommen verkleinerte Fenster für Browserleisten, Split View und frei skalierte Tablet-Fenster. Es handelt sich um Layout-Profile, nicht um echte Geräteerkennung.
+
+Die Displaygrundlagen stammen von Apple: [iPad 10](https://support.apple.com/en-za/111840), [iPad Pro 11, ältere Generation](https://support.apple.com/en-by/111897), [iPad Pro, aktuelle Spezifikationen](https://www.apple.com/ca/ipad-pro/specs/). Die Tests verwenden CSS-Pixel, nicht native Display-Pixel.
+
+- 128/128 Modelltests bestanden.
+- Desktop-/Mobile-Regressionssuite `polish-browser.cjs` bestanden, inklusive kompletter Route bis Endless, Autosave während Slot-Animation und Werkbank.
+- `ipad-browser.cjs`: 15 Layout-Profile je Engine in WebKit und Chromium (Edge), insgesamt 30 Ansichten. Haupttisch, Touch-Zielgrößen, Setzen/Drehen/Reload und Rotation in allen Profilen; Map, Shop, Slot-Kauf und 38-Felder-Werkstatt in sieben repräsentativen Profilen je Engine.
+- Keine horizontalen Seiten-/Dialogüberläufe oder JavaScript-Fehler in diesen Prüfungen. Die kleineren Ansichten dürfen vertikal scrollen. Screenshots wurden auf Lesbarkeit und Anordnung geprüft.
+- iPad-10-Hoch-/Querformat zusätzlich mit 2× Pixeldichte in WebKit geprüft. Die große Matrix verwendet 1× Screenshot-Auflösung bei denselben CSS-Abmessungen.
+
+## Dateien und Veröffentlichung
+Geändert: `index.html` (Viewport und Stylesheet), `script.js` (Touch-Erkennung und Feldraster-Zeilen), `README.md`, `ROADMAP-STAND.md`. Neu: `tablet.css`, `tests/ipad-browser.cjs`. Spielregeln und Save-Format wurden für diesen Patch nicht verändert.
+
+Das Repo erhält den vollständigen aktuellen Stand inklusive der zuvor lokalen Build-/Map-/Balance-Updates. Veröffentlicht werden Spiel-Dateien, Dokumentation, Modelltests und aktuelle portable Browser-Tests; historische lokale Browser-Skripte und Screenshots werden nicht ins Repo übernommen.
+
+Offen: Prüfung auf physischer iPad-Hardware, insbesondere virtuelle Tastatur, Safari-Leisten und OS-Fenstermanagement. WebKit-Emulation ist kein vollständiger Ersatz dafür.
+
+---
+
+# V1.3: Neue Build-Werkzeuge, längere Route und Progressions-Balancing
+
+Stand: 29.09.2026. Im bestehenden Vanilla-Projekt umgesetzt. Dieser Abschnitt ersetzt die unten archivierten Angaben zur Länge und Schwierigkeit neuer Maps.
+
+## Vier neue Chips — jetzt insgesamt 20
+| Chip | Seltenheit / Build | Effekt |
+| --- | --- | --- |
+| Drifter | Common / Farbwechsel | Außenwetten erhalten +20 Basispunkte, wenn Rot auf Schwarz oder Schwarz auf Rot folgt. Der erste Spin und Null aktivieren den Bonus nicht. |
+| Collector | Common / Kleine Crew | Außenwetten erhalten +4 Basispunkte je freiem Chip-Platz, maximal +16. Heavy und Expanded beeinflussen freie Kapazität. |
+| Surveyor | Uncommon / Breites Netz | Außenwetten erhalten +10 Basispunkte je anderer tatsächlich gewinnender Wettart in diesem Spin, maximal +30. Mehrere gleiche Wettarten zählen einmal. |
+| Carbon | Rare / Radbau | Zahlenwetten erhalten +100 Basispunkte je zusätzlicher Kopie der Zahl im permanenten Rad, maximal +400. Temporäre Bossfelder zählen nicht. |
+
+Diese Basisboni werden vor Polished, Curse und Echo berechnet. Lucky Seven verwendet danach den einmal eingefrorenen Chip-Wert und löst keine neue Zufallswertung aus. Chip-Details kennzeichnen den jeweiligen Build-Typ.
+
+## Vier neue Relics — jetzt insgesamt 16
+| Relic | Seltenheit / Build | Effekt an seiner Auswertungsposition |
+| --- | --- | --- |
+| Metronome | Uncommon / Farbwechsel | +25 Punkte bei echtem Rot-/Schwarz-Wechsel und mindestens einem Gewinner. |
+| Afterimage | Rare / Radbau | +100 Punkte, wenn dieselbe Zahl wie im vorherigen Spin fällt und mindestens ein Chip gewinnt. Null bleibt möglich; der Null-Abzug folgt danach. |
+| Compass | Rare / Breites Netz | Ab zwei verschiedenen gewinnenden Wettarten: +20 Punkte je gewinnender Wettart. |
+| Workshop Seal | Epic / Kompaktes Rad | +60 Punkte bei höchstens 12 permanenten Radfeldern und mindestens einem Gewinner. Temporäre Bossfelder zählen nicht. |
+
+Alle acht Inhalte gehören zum gemischten Slot-Pool. Legendary-Chancen und bestehende Freischaltungen bleiben erhalten. Beispiele: Drifter + Metronome für Farbwechsel; Collector + vorhandenes Lone Wolf für wenige starke Chips; Surveyor + Compass für Abdeckung; Carbon + Afterimage für mehrfach vorhandene Zahlen. Workshop Seal belohnt konsequentes Verkleinern des Rads. Es gibt keine zusätzlichen versteckten Set-Multiplikatoren für diese Kombinationen.
+
+## Eine zusätzliche Map-Etappe pro Floor
+Vor dem garantierten letzten Shop liegt eine neue verzweigte Ebene:
+- **Seitenwerkstatt:** kostenlos Delete oder Rewrite wählen und sofort anwenden oder behalten. Damit lässt sich der Radbau gezielter verfolgen.
+- **Eine letzte Gelegenheit:** reguläres zufälliges Event mit Entscheidung und Ausweg.
+- **Doppelter Boden:** optionaler riskanter Tisch mit sechs Spins und 6 Münzen plus dem bisherigen Floor-Zuschlag (höchstens 4).
+
+Neue Maps haben sieben Ebenen inklusive Einstieg, im Penthouse fünf. Pro normalem Vier-Floor-Run werden 26 statt 22 Räume durchlaufen. Jede zusätzliche Etappe verlangt eine Pfadentscheidung; es gibt keinen zusätzlichen Pflichtkampf. Linien, Erreichbarkeit und ein Shop direkt vor dem Boss bleiben erhalten. Höhere Map-Flächen und kleinere Knoten auf kurzen Desktops schaffen Platz.
+
+## Balancing
+- Der Basic-Start und Floor 1 bleiben bei ihren bisherigen Zielen. Die zusätzliche Etappe gibt vor dem Boss eine weitere Gelegenheit zum Verbessern des Builds.
+- In neuen Maps: Floor-2-Ziele ×0,9, Floor 3 ×0,8, Floor 4 ×0,85, jeweils auf Zehner gerundet. Boss-Ziele sind damit **120 / 320 / 560 / 850** bei unveränderten Spin-Budgets.
+- Endless behält seine wachsenden Ziele. Die zusätzliche Etappe bleibt dort erhalten.
+- Gemischte Slot-Preise, Nachfüllkosten und normale Raumauszahlungen bleiben auf dem V1.2-Niveau. Kein allgemeiner Geldbonus; nur der optionale zusätzliche Risikotisch zahlt weitere Münzen aus.
+- Zwei neue Common-Chips verbreitern die frühen Ergebnisse: Common muss nicht immer einen weiteren Basic liefern.
+
+### Reproduzierbarer Vorher-/Nachher-Vergleich
+Je 1.000 Runs mit Startwerten 1–1000 und derselben einfachen Entscheidungsstrategie: Wetten nach erwartetem Score, bevorzugt Shops/Werkstätten, sichere Events oder Überspringen, Slot-Käufe ohne Ersetzen/Nachfüllen, keine Freischaltungen. Werkzeug-Nutzung ist heuristisch. Das ist ein technischer Vergleich, keine Schätzung menschlicher Gewinnraten.
+
+| Messwert | V1.2 | V1.3 |
+| --- | ---: | ---: |
+| Floor 2 erreicht | 379 | 454 |
+| Floor 3 erreicht | 145 | 251 |
+| Floor 4 erreicht | 37 | 79 |
+| Normalen Run gewonnen | 23 | 53 |
+| Durchschnittliche Slot-Käufe | 2.27 | 3.24 |
+| Durchschnittliche Münzen am Run-Ende | 8.49 | 9.29 |
+
+Mehr Runs erreichen spätere Floors, und mehr Geld wird tatsächlich ausgegeben; das durchschnittliche Restbudget steigt nur leicht. Die Strategie ist weder optimal noch menschlich. Einzelne Builds, riskante Events und Inventarersatz benötigen weiter praktische Spieltests. Bericht: `tests/balance-report.json`; Simulation: `node tests/balance-simulation.cjs ../script.js 1000`.
+
+
+## Shop-UI
+- Kompakte Karten zeigen 55 % Chip, 25 % Relic und 20 % Rad-Item anstelle des langen Erklärungstexts.
+- Vor dem Kauf steht das verbleibende Budget direkt am Kaufbereich.
+- Ein unverkauftes Angebot ist beim Betreten vorausgewählt; nach einem Kauf wird das nächste ausgewählt.
+- Nicht bezahlbare Angebote haben gedämpfte Preisschilder, verkaufte Angebote bleiben klar markiert.
+- Mobil steht der Kaufbereich oben. Die Auswahl einer Karte führt direkt dorthin; Nachfüllen und Zur-Map bleiben beim Scrollen erreichbar.
+- Werkzeugkauf, explizites Ersetzen bei vollem Inventar und der unmittelbare Slot-Kauf bleiben erhalten.
+
+## Save/Load und Tests
+- Map-Version 3 für neue Maps. Version 1 und 2 werden weiterhin mit ihrer bisherigen Raumanzahl, Kanten, Zielen und Auszahlungen geladen. Der nächste Floor nutzt Version 3. Alte laufende Runs werden nicht mitten auf ihrer Route verlängert.
+- Neue Chips und Relics, gesetzte Wetten, Verlauf und Auswertung werden vollständig gespeichert. Farbwechsel-/Wiederholungsbedingungen bleiben nach Reload erhalten und starten am nächsten Tisch mit leerem Verlauf.
+- **128/128 Modelltests bestanden**, darunter zehn neue Tests für Bedingungen, Caps, Relic-Reihenfolge, Echo/Polished/Lucky Seven, Save/Load und die neue Seitenwerkstatt.
+- 500 generierte Maps: gültige Kanten, keine Sackgassen, mehrere Routen, Shop/Boss erreichbar, exakter Save-Roundtrip.
+- `polish-browser.cjs`: gesamter Run bis Endless, Slot-Kauf/Reload, Haupttisch, Dialoge und 38-Felder-Werkbank auf Desktop/Mobil.
+- `build-systems-browser.cjs`: die bisherigen zehn Event-Entscheidungen, Curses, Synergien und Reload während einer Drehung.
+- `build-expansion-browser.cjs`: neue Build-Tags und Relics, tatsächliche neue Scoring-Traces, Save/Load, längere Map, Delete aus Seitenwerkstatt, Shop-Restbudget und mobile Angebotsauswahl; 1366 × 768, 1366 × 600 und 390 × 844. Screenshots unter `test-results/v13` geprüft; keine JavaScript-Fehler.
+
+## Dateien und nächste Schritte
+Geändert: `script.js`, `style.css`, `index.html`, `ROADMAP-STAND.md` und die betroffenen Tests. Neu: `build-expansion.test.cjs`, `build-expansion-browser.cjs`, `balance-simulation.cjs` und die gemeinsame Routen-Testhilfe `route.fixture.cjs`.
+
+Als Nächstes: echte Spieler-Runs für Balance-Feedback, besonders Collector im frühen Spiel und Carbon mit stark verändertem Rad; mehr boss-spezifische Gegenentscheidungen. Die vorhandenen sechs expliziten Synergien bleiben zusätzlich zu den neuen natürlichen Kombinationen bestehen. Kleine Ansichten scrollen bei längeren Dialogen weiterhin vertikal. Änderungen sind lokal und im ZIP, nicht automatisch auf GitHub veröffentlicht.
+
+---
+
+# V1.2: Spielwelt, Werkbank, Zufalls-Slots und Economy
+
+Stand: 29.09.2026. Direkt im bestehenden Vanilla-Projekt umgesetzt. Dieser Abschnitt beschreibt die aktuellen Regeln; ältere Abschnitte darunter dokumentieren frühere Versionen.
+
+## Was neu ist
+- Einheitlicher Filz-/Papier-/Messing-Look mit kräftigen Konturen, versetzten Karten und einem Roguelette-Stempel. Dialoge, Buttons, Karten und Details verwenden dieselbe Gestaltung.
+- Zentrierte Chip-Slots mit festen Chip-/Namenszeilen; Desktop bleibt auch bei 1366 × 600 im Fenster. Mobile Dialoge scrollen vertikal ohne horizontale Überläufe.
+- Werkbank mit großem Rad, physischen Feldplättchen, Werkzeug-Auswahl, markierter Quelle/Ziel und einer echten Vorher-/Nachher-Vorschau. Vorschau nutzt dieselbe Logik wie die Anwendung, verändert aber den Run nicht. Werkzeuge können direkt nach dem Werkstattbesuch verwendet werden.
+- Ausgebautes Rad bis 38 Felder: zwei Auswahlringe am Desktop, Feldraster auf Mobilgeräten. Die Aktionszeile bleibt beim Scrollen erreichbar.
+- Alle Punktanzeigen verwenden dieselbe Ganzzahl-Rundung, einschließlich Auswertung, Verlauf und Bestwerten. Interne Bruchteile bleiben erhalten; Wahrscheinlichkeiten und Multiplikatoren behalten nötige Nachkommastellen.
+
+## Neues Slot-System
+Jeder neue Shop enthält **Slot A, B und C plus ein zufälliges Rad-Werkzeug**. Die drei Slots ziehen aus demselben gemischten Pool: 55 % Chips, 25 % Relics, 20 % Rad-Items. Keine Kategorie-Vorwahl und kein vorgelagerter Token-Beutel: Kaufen bezahlt und würfelt sofort, anschließend läuft die kurze Slot-Animation. Der wirkungslose Hebel wird beim bereits gekauften Ergebnis ausgeblendet.
+
+Seltenheit, Luck, Freischaltungen und der bestehende Fallback für leere Pools bleiben wirksam. Legendary bleibt selten. Neue Chips können weiterhin mit 10 % Chance eine Mutation tragen; separate Mutationen sind nicht kaufbar. Bei vollem Inventar bleibt das Ergebnis bestehen, bis ausdrücklich ersetzt oder verworfen wird. Kauf, Ergebnis und Geldstand sind vor der Animation gespeichert; Neuladen würfelt nicht neu und vergibt nichts doppelt.
+
+Alte Spielstände behalten ihre laufende Map samt damaligen Belohnungen und bereits erzeugten Shop-Angeboten. Vorhandene ältere Tokens bleiben verwendbar. Ab dem nächsten Floor wird das neue Map-Format verwendet; neu erzeugte Shops nutzen die neuen Angebote.
+
+## Economy
+| Regel | Neuer Wert |
+| --- | --- |
+| Einstiegstisch | 6 Münzen + Floor-Zuschlag |
+| Normaler Tisch | 4 Münzen + Floor-Zuschlag |
+| High Stakes | 8 Münzen + Floor-Zuschlag |
+| Floor-Zuschlag | Floor − 1, maximal 4 Münzen |
+| Boss | 10 + 2 × Floor, maximal 20 Münzen |
+| Gemischter Slot | 6 + Floor − 1, maximal 16 Münzen |
+| Direktes Rad-Werkzeug | Slot-Preis + 1 / 3 / 5 je Common / Rare / Epic |
+| Shop nachfüllen | 4 + höchstens 4 Floor-Zuschlag + 3 pro bisherigem Nachfüllen in diesem Shop |
+
+Ein normaler erster Weg bringt 10 Münzen: genug für einen Slot, nicht für zwei oder den ganzen Shop. Ein riskanter High-Stakes-Weg bringt mehr Kaufkraft. Kein pauschaler Penthouse-Rabatt mehr. Endless erhöht Preise länger als normale Raumauszahlungen; wiederholtes Nachfüllen ist eine zusätzliche Münzsenke. Event-Handel und spezielle Build-Effekte bleiben eigenständige Einnahmequellen.
+
+## Zufällige Route
+Jeder Floor erzeugt eine neue Anordnung mit echten Kanten. Nach dem Einstiegstisch folgen drei bis fünf Route-Ebenen. Mehrspurige Ebenen bieten pro Raum höchstens zwei Folgewege, keine vollständige Verbindung aller Räume. Alle Knoten besitzen einen Weg zum Boss, ohne verwaiste Räume oder Sackgassen. Raumpositionen, passende Werkstatt-/Tisch-Ebenen und Verbindungen variieren. Es gibt mindestens drei mögliche Routen; ein Shop unmittelbar vor dem letzten Boss ist garantiert.
+
+Die gezeichnete Map zeigt besuchte Wege, erreichbare Räume, die aktuelle Position und einen großen Boss-Knoten. Hover, Tastaturfokus und Antippen zeigen Details. Gespeicherte Kanten bleiben beim Laden identisch.
+
+## Content-Vorbereitung
+Der gemischte Pool wird aus den vorhandenen Chip-, Relic- und Rad-Item-Katalogen erzeugt. Einträge ohne Seltenheitsangabe erhalten Common als Fallback. Die bestehende Freischaltungsprüfung bleibt zentral wirksam, Detailkarten passen sich responsiv an. Dieser Pass fügt keine zusätzlichen Chips oder Relics hinzu; er bereitet deren Ausbau vor und konzentriert sich auf die Spielabläufe.
+
+## Geänderte Dateien
+- `script.js`: Economy, Map-Versionierung/Generierung/Laden, unmittelbarer Slot-Kauf, Pool-Aufbau, Ganzzahl-Formatter, Werkbank/Vorschau, UI-Ansteuerung.
+- `index.html`: Werkbank-Szene, aktuelle Spielhilfe und Versionsangabe.
+- `style.css`: gemeinsame Gestaltung, Chip-Zentrierung, Map, Shop und Werkstatt inklusive kleiner Bildschirme.
+- `tests/polish.test.cjs`: neue Modelltests; `tests/polish-browser.cjs`: neuer Browser-Durchlauf.
+- Bestehende Economy-/Shop-/Save-/Map-Tests und die deterministische Roster-Fixture an die beabsichtigten Regeln angepasst.
+- `ROADMAP-STAND.md`: dieser Änderungsstand.
+
+## Prüfung
+- **118/118 Node-Tests bestanden** (`node --test "tests/*.test.cjs"`).
+- 500 generierte Maps inklusive Save/Load: gültige Kanten, Erreichbarkeit, mindestens drei Routen, garantierter Shop/Boss und mehr als 400 unterschiedliche Karten.
+- Sofortiger Slot-Kauf für alle drei Angebote und alle Ergebnistypen; einmalige Zahlung, Ersatz/Verwerfen bei vollem Inventar, alte Saves/Tokens und neue gespeicherte Ergebnisse.
+- Alle sechs Rad-Werkzeuge: atomare Vorschau, Feldgrenzen und direkte Benutzung im Werkstattraum.
+- `polish-browser.cjs` in Headless Edge: 1920 × 1080, 1366 × 768, 1366 × 600, 390 × 844 und 844 × 390 am Tisch; zentrale Dialoge Desktop/Mobil; 38-Felder-Werkbank, Shop, Map, Neuladen während Slot-Animation; kompletter Routenablauf durch vier Floors und bis Floor 6 in Endless. Keine JavaScript-Fehler. Der Durchlauf verwendet einen gezielt starken Test-Build und ist kein Nachweis der Gewinnrate mit Basic.
+- `build-systems-browser.cjs` in Headless Edge: alle zehn neuen Event-Entscheidungen, Zielauswahl und Reload, Curse-/Synergie-Ansicht, Score-Traces und Speichern während einer Drehung. Keine JavaScript-Fehler.
+- Screenshots unter `test-results/v12` visuell kontrolliert; Preisschild-Überlappung, abgeschnittene Tooltips, Map-Positionslabel und Werkbank-Fit korrigiert.
+- Historische Browser-Skripte vor V1.2 enthalten teilweise alte Shop-Erwartungen. Für den aktuellen Shop-/Routenablauf gilt `polish-browser.cjs`; die vollständige Modelltestsuite bleibt aktiv.
+
+## Offen / als Nächstes sinnvoll
+- Economy mit normalen Spieler-Runs über mehrere Build-Typen abstimmen: technisch geprüfte Preise ersetzen keinen längeren Balancing-Playtest. Münz-Builds, Event-Gewinne und bereits reiche alte Saves können weiterhin größere Guthaben erzeugen.
+- Zusätzliche Map-Layouts mit variabler Spurenanzahl und mehr floor-spezifischen Raumkombinationen; derzeit variieren bewährte Raum-Sets und Verbindungen.
+- Neue Chips/Relics nach Build-Archetypen sowie markante Boss-/Event-Illustrationen.
+- Weitere Browser-Engines prüfen; dieser Pass wurde in Edge/Chromium getestet.
+- Sehr kleine Bildschirme nutzen bewusst vertikales Scrollen, insbesondere Werkbank und Shop. Browser-Autosaves bleiben lokal im jeweiligen Browser-Profil.
+
+---
+
+# V1.1: Build-Synergien, Entscheidungen und Chip-Flüche
+
+## Sechs automatisch erkannte Synergien
+Aktive Synergien stehen in der Build-Ansicht mit Effekt und erfüllten Bedingungen. Noch inaktive Kombinationen lassen sich unter „Weitere Builds entdecken“ nachlesen. Die Erkennung erfolgt aus dem aktuellen Build und dem permanenten Rad; temporäre Double-Zero-Bossfelder zählen nicht.
+
+| Synergie | Voraussetzung | Effekt |
+| --- | --- | --- |
+| Roter Faden | Crimson oder Ember + Blood Pact + mehr als 50 % rote Radfelder | Ein Treffer eines Crimson/Ember auf ROT gibt einmal pro Spin +1 Münze. |
+| Präzision | Sniper oder Repeater + Bullseye + doppelte Nichtnull-Zahl im Rad | Zahlen-Treffer dieses Spezialisten auf einer mehrfach vorhandenen Zahl: 15 % Chance auf eine Zusatzwertung; mit Echo insgesamt 40 %. |
+| Grüner Pakt | Zero + Green Seal + mindestens 3 permanente Nullfelder | Bei einem Zero-Treffer auf 0 entfällt der Null-Abzug dieses Spins. |
+| Zweite Chance | Streak + Safety Net + mindestens 60 % rote oder schwarze Felder | Der erste verlierende Streak-Chip mit einer Serie behält pro Tisch einmal die aufgerundete Hälfte seiner Serie. |
+| Resonanz | Mindestens 2 Echo-Chips + Lucky Seven | Echo-Chance 40 %. Lucky Seven würfelt kein neues Echo aus. |
+| Breites Netz | Balance + Anchor + Full Coverage | Full Coverage benötigt nur 3 statt 4 tatsächlich gesetzte Wettarten und einen Gewinner. |
+
+Präzision und Echo teilen sich dieselbe Zusatzwertung: keine rekursiven Trigger und maximal eine zufällige Zusatzwertung pro Chip. Lucky Seven addiert weiterhin den eingefrorenen Chip-Grundwert genau einmal an seiner Relic-Position.
+
+## Zehn neue Events, zusätzlich zu den drei bisherigen
+Jeder Raum bietet mindestens eine Handelsentscheidung und einen kostenlosen Ausweg. Ziel-Chips, Relics, Mutationen und Radfelder werden ausdrücklich ausgewählt. Gesperrte Entscheidungen zeigen den Grund. Fehlgeschlagene Entscheidungen verändern weder Inventar noch Geld; erfolgreiche Entscheidungen sind nur einmal möglich.
+
+| Event | Entscheidung und Preis |
+| --- | --- |
+| Der schmale Kreis | Letzte 3 Radfelder entfernen, Crown erhalten. Mindestens 6 Felder bleiben. Bei 4 Relics muss ausdrücklich eines ersetzt werden. |
+| Rote Tinte | Bis zu 3 schwarze Felder werden rot; dafür kommt eine permanente Null hinzu. |
+| Zwei für einen | Gewählten Chip einschließlich Mutation und Curse opfern; 2 zufällige freigeschaltete Chips ohne Zusatzeffekte erhalten. |
+| Das doppelte Siegel | 2 zufällige, unterschiedliche neue Mutationen auf einem Chip; dazu einen von 6 Curses wählen. |
+| Der Pfandleiher | Relic verkaufen: entweder +18 Münzen oder +1 permanentes Event-Luck (maximal 5). |
+| Blinde Wäsche | Für 3 Münzen eine gewählte Mutation gegen eine andere zufällige, noch nicht vorhandene tauschen. |
+| Geborgte Zeit | Gewähltes Radfeld duplizieren; nächster Kampftisch −1 Spin. |
+| Der Glückspass | Für 12 Münzen +3 Luck ausschließlich im nächsten Floor; nächster Kampftisch −1 Spin. |
+| Der Entflucher | Gewählten Curse gegen 10 Münzen oder eine gewählte Mutation entfernen. Erzeugte Nullfelder bleiben. |
+| Die dunkle Schmiede | Polished + Heavy für 8 Münzen oder Echo + Greedy für 6 Münzen. |
+
+Inventargrenzen: 2 Rad-Items, 3 Tokens, 4 Relics, 6 Chip-Plätze plus Expanded; Heavy belegt einen Zusatzplatz. Das permanente Rad bleibt zwischen 6 und 38 Feldern. Höchstens 2 fehlende Spins werden vorgemerkt; am nächsten Kampftisch bleibt mindestens ein Spin. Ein Glückspass kann nicht gestapelt werden. Die letzte Event-Entscheidung und vorgemerkte Effekte sind in der Build-Ansicht sichtbar.
+
+## Sechs separate Chip-Curses
+Ein Chip besitzt zusätzlich zu normalen Mutationen höchstens einen Curse. Neue Startchips bleiben ohne Mutation und Curse. Curses sind ausschließlich über Events erhältlich und sind keine Shop-/Token-Kategorie.
+
+| Curse | Bonus | Nachteil |
+| --- | --- | --- |
+| Greedy | ×2 Chip-Punkte | Muss jeden Spin gesetzt werden. Bei The Minimalist sind nur die ersten 3 Greedy-Chips im Inventar pflichtig, damit der Boss spielbar bleibt. |
+| Fragile | ×2,5 Chip-Punkte | Zerbricht nach 3 verlorenen gesetzten Spins. Gewinne heilen den Zähler nicht. Zerbricht der letzte Chip, kommt ein unmutierter, unverfluchter Basic ins Inventar. |
+| Cursed | ×3 Chip-Punkte | Beim Erhalt einmalig +1 permanente Null. Entfluchen entfernt sie nicht. |
+| Addicted | Gleiche Wettart wie beim vorherigen Einsatz: ×1,5 | Wechsel der Wettart: ×0,5. Erster Einsatz ×1. Familien: Zahl, Farbe, Parität, Bereich. |
+| Volatile | Bei Treffer 35 % Chance auf ×3, sonst ×1 | Bei Verlust −10 Punkte nach Relics und Boss-Abzügen, gedeckelt am verbleibenden Spin-Score. |
+| Heavy | ×2 Chip-Punkte | Belegt 2 Chip-Plätze. Expanded gleicht den zusätzlichen Platz aus. |
+
+Chip-Abzeichen und Details zeigen den Curse; Fragile zeigt seinen Verlustzähler, Addicted seine letzte Wettart. Die Spin-Auswertung erklärt Curse-Multiplikatoren, Zusatzwertungen, Synergie-Auslösungen und Volatile-Abzüge. Reihenfolge: Chip-Effekt/Streak → Polished → Curse → Zusatzwertung → Relics → Boss-Abzüge → Volatile → Null-Abzug. Finale Rundung weiterhin auf 2 Nachkommastellen.
+
+## Speicherung und Kompatibilität
+- Bestehende Version-1-Spielstände bleiben ladbar; neue optionale Zustandsfelder erhalten sichere Standardwerte.
+- Curse-Name, Verlustzähler und Wettart, Streak-Schutz, permanentes Event-Luck, nächster-Floor-Bonus, Spin-Schuld und Event-Entscheidung werden gespeichert und validiert.
+- Synergien werden aus dem wiederhergestellten Build neu berechnet.
+- Curses, permanente Änderungen und Event-Luck werden in Endless übernommen; zeitlich begrenzte Floor-Boni laufen korrekt aus.
+- Shops und Token-Ersetzungen berücksichtigen Heavy und Expanded gemeinsam.
+- Rad-Items und sämtliche bisherigen Mutationen, Relics und Achievements bleiben aktiv.
+
+## Prüfungen
+- 109 Test-Runner-Fälle bestanden, davon 26 neue Fälle für diese Systeme.
+- Alle 10 Event-Typen über die Browser-UI abgeschlossen und vor/nach der Auswahl neu geladen.
+- Zielauswahl, volle Inventare, ungültige Aktionen ohne Teiländerungen, kostenlose Auswege und einmalige Vergabe geprüft.
+- Drei gleichzeitig aktive Synergien und verfluchter Chip inklusive Spin-Auswertung im Browser geprüft.
+- Reload während der Roulette-Animation: verfluchtes Ergebnis bleibt erhalten, Zahltreffer-Achievement zählt genau einmal.
+- Neue Event-/Build-Dialoge bei 1366×768 und 390×844 geprüft, keine horizontale Überbreite; lange Inhalte sind scrollbar.
+- Bestehender vollständiger Browser-Run durch alle vier Floors, alle drei House-Phasen, Endless-Boss und folgende Niederlage bestanden. Shops, Slot, Mutationen, Freischaltungen und gesperrter Speicher weiter funktionsfähig.
+- Keine JavaScript-Fehler in diesen Browser-Durchläufen.
+
+## Wichtigste Dateien und Funktionen
+- `script.js`: `CURSES`, `grantCurse`, `chipLoad`, `missingGreedy`, `detectSynergies`, `activeSynergies`, `curseMultiplier`, `resolveSpin`, `BUILD_EVENTS`, `resolveBuildEvent`, `renderEventChoices`, `renderBuild`, `decodeRun`, `enterRoom`, `advanceFloor`, `claimReward`.
+- `index.html`: Synergiebereich im bestehenden Build-Dialog, aktualisierte Wertungsreihenfolge, V1.1-Anzeige.
+- `style.css`: Curse-Siegel, Synergiekarten und responsive Event-Zielauswahl im bestehenden Stil.
+- `tests/build-systems.test.cjs`: neue System- und Integrationsprüfungen.
+- `tests/build-systems-browser.cjs`: portable Browser-Prüfung; benötigt Playwright und standardmäßig Edge (`BROWSER_CHANNEL` optional). Screenshots entstehen in `test-results/`.
+- `tests/events.test.cjs`, `tests/save.test.cjs`, `tests/basic-start.test.cjs`: feste Test-Zufallswerte an den erweiterten Event-Pool angepasst.
+
+## Offene Punkte
+Keine bekannten Blocker in den geprüften Abläufen. Langzeit-Balancing über viele zufällige Runs ist noch offen, insbesondere Cursed/Polished/Zero-Kombinationen und hohe Endless-Floors. Die zufälligen neuen Chips/Mutationen werden bewusst erst beim tatsächlichen Event-Abschluss gezogen. Cloud-Sync und Spielstand-Export bleiben außerhalb dieses Blocks.
+
+---
+Archiv früherer Entwicklungsstände. Die folgenden Feature-Zahlen und Einschränkungen beschreiben den damaligen Stand.
+
 # V1.0: Automatische Speicherung und Release-Polish
 
 Roadmap-Block 100–104: Run Save/Load umgesetzt. Dazu gezielter UI- und Bedienungs-Feinschliff für den ersten Versionsstand.
@@ -348,7 +611,7 @@ Frühere Entwicklungsstände (Shop-Verhalten oben ersetzt die damaligen direkten
 - Sechs PC-Größen von 1100 × 650 bis 1920 × 1080 einschließlich 1366 × 600 sowie mobile Token-Ansicht bei 390 Pixel Breite geprüft. Keine JavaScript-Fehler.
 - Tests: node --test tests/*.test.cjs
 
-Direkt in C:\Users\repin\Desktop\chat aktualisiert. Zum Laden Strg + F5 drücken.
+Direkt in dem Projektordner aktualisiert. Zum Laden Strg + F5 drücken.
 
 ---
 ## Historie – frühere Angaben zu inaktivem Luck und fehlenden Tokens sind oben ersetzt
@@ -390,7 +653,7 @@ Direkt in C:\Users\repin\Desktop\chat aktualisiert. Zum Laden Strg + F5 drücken
 - Bossansicht bei 1440 × 900, 1366 × 768, 1366 × 600, 1100 × 650 und 390 × 844 geprüft. Keine Überschneidung mit dem Inventar und auf den geprüften PC-Größen kein Seitenscrollen.
 - Tests starten: node --test tests/*.test.cjs
 
-Direkt im Projekt C:\Users\repin\Desktop\chat aktualisiert. Zum Laden im Browser Strg + F5 drücken.
+Direkt im Projekt dem Projektordner aktualisiert. Zum Laden im Browser Strg + F5 drücken.
 
 ---
 ## Historie – frühere Startaufstellungen und Zielwerte sind oben ersetzt
@@ -433,7 +696,7 @@ Direkt im Projekt C:\Users\repin\Desktop\chat aktualisiert. Zum Laden im Browser
 - Browserdurchlauf: Startmenü, Hilfe, Fortsetzen, Map mit Hover und Touch, Relic- und Mutationskauf, Ereignis, letzter Shop, Boss und Neustart; keine JavaScript-Fehler.
 - Sieben PC-Größen bis 1366 × 600 mit verteilten und gestapelten Chips geprüft. Startbildschirm und Map zusätzlich auf Tablet und 390 Pixel breitem Handy geprüft.
 - Shop auf Desktop und Mobil visuell geprüft; Preisschilder verdecken keine Kartennamen.
-- Projekt direkt in C:\Users\repin\Desktop\chat aktualisiert. Browser mit Strg + F5 neu laden.
+- Projekt direkt in dem Projektordner aktualisiert. Browser mit Strg + F5 neu laden.
 - Tests: node --test tests/*.cjs
 
 Der Umfang bleibt der erste Casino-Floor. Weitere Floors, Slot-Machine, aktiver Luck-Einfluss und gespeicherte Runs sind weiterhin offen.
@@ -595,10 +858,3 @@ Aufgaben 54 bis 62: Run-Währung, Slot Tokens, Slot-Machine, Rarity-Pools und Lu
 ## Starten und testen
 index.html im Browser öffnen. Nach einem Update Strg + F5 verwenden.
 Die Logiktests benötigen nur Node.js: node --test tests/core.test.cjs tests/game.test.cjs tests/relics.test.cjs
-
-
-
-
-
-
-

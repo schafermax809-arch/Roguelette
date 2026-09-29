@@ -1,0 +1,3 @@
+# Local browser test artifacts
+/test-results/
+/node_modules/

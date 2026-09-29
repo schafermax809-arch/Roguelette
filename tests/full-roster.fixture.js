@@ -2,7 +2,7 @@
 // Actual runs use the unmodified createState() and start with one Basic.
 const game = require('../script.js');
 module.exports = {...game, createState() {
-    const state = game.createState();
+    const state = game.createState(()=>0);
     state.chips = game.CHIP_TYPES.map(game.createChip);
     state.nextChipId = 6;
     state.target = 100;

@@ -1,0 +1,33 @@
+{
+  "date": "2026-09-29",
+  "seeds": "1–1000",
+  "baselineVersion": "V1.2",
+  "currentVersion": "V1.3",
+  "limitations": "Heuristic bot, no unlocks, safe/skip events, no replacement or refill decisions; not a human victory-rate estimate.",
+  "before": {
+    "policy": "Outside/number expected-score bot; safe events, buys slots, no replacements/refills; no unlocks",
+    "runs": 1000,
+    "reached": [
+      1000,
+      379,
+      145,
+      37
+    ],
+    "wins": 23,
+    "meanCoins": 8.49,
+    "meanPurchases": 2.27
+  },
+  "after": {
+    "policy": "Outside/number expected-score bot; safe events, buys slots, no replacements/refills; no unlocks",
+    "runs": 1000,
+    "reached": [
+      1000,
+      454,
+      251,
+      79
+    ],
+    "wins": 53,
+    "meanCoins": 9.29,
+    "meanPurchases": 3.24
+  }
+}
