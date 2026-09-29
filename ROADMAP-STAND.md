@@ -1,3 +1,9 @@
+# V1.4.2: Rundes Roulette-Rad in Safari
+
+- Ursache gezielt in WebKit reproduziert: Der Rahmen war 230 × 230 Pixel groß, das innere Rad durch `height:100%` im gepolsterten Aspect-Ratio-Container jedoch 210 × 230 Pixel. Dadurch wurden Segmente und Zahlen versetzt bzw. abgeschnitten.
+- `style.css`: Das innere Rad liegt mit gleichen 10-Pixel-Innenabständen im quadratischen Rahmen, ohne Prozenthöhe. Die Rad-Bühne wird außerdem nicht mehr durch Flex-Shrinking gestaucht. Größe, Drehung und bestehender Tisch bleiben erhalten.
+- `tests/safari-viewport.cjs` prüft jetzt zusätzlich, dass Rahmen, Rad und Nabe über die getesteten Höhen, Bosszustände und Drehungen quadratisch bleiben. `index.html` lädt die korrigierte Basis-CSS mit neuer Cache-Version.
+
 # V1.4.1: Safari-Viewport-Fix
 
 Stand: 29.09.2026. Reiner CSS-Fix am bestehenden Spiel; Spielregeln und Save-Format unverändert.

@@ -1,4 +1,4 @@
-# Roguelette — V1.4.1 · Safari-Viewport-Fix
+# Roguelette — V1.4.2 · Safari-Rad-Fix
 
 Ein Roulette-Roguelike auf einem gezeichneten Pokertisch. Starte mit einem Basic-Chip, baue dein Rad und deinen Build um und fordere The House heraus.
 

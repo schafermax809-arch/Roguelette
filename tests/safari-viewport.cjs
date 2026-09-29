@@ -18,6 +18,7 @@ fs.mkdirSync(out,{recursive:true});
      const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,right:r.right,bottom:r.bottom};};
      const selectors=['.app','.topbar','.table-heading','.game-layout','.bets-panel','.wheel-panel','.stats-panel','.inventory','.wheel-stage','#chips','#spin','#status','#boss-banner'];
      return {width:innerWidth,height:innerHeight,pageWidth:document.documentElement.scrollWidth,pageHeight:document.documentElement.scrollHeight,
+      circles:['.wheel-shell','#wheel','.wheel-hub'].map(s=>{const e=document.querySelector(s);return {s,w:e.offsetWidth,h:e.offsetHeight};}),
       boxes:Object.fromEntries(selectors.map(s=>[s,rect(document.querySelector(s))])),
       controls:[...document.querySelectorAll('.app button')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden').map(e=>{
        const r=rect(e),hit=document.elementFromPoint(r.x+r.w/2,r.y+r.h/2);
@@ -28,6 +29,7 @@ fs.mkdirSync(out,{recursive:true});
     measurements.push({engine,label,...m});
     assert(m.pageWidth<=m.width+1,label+' page horizontal overflow');
     assert(m.pageHeight<=m.height+1,label+' page vertical overflow: '+m.pageHeight);
+    for(const c of m.circles)assert(Math.abs(c.w-c.h)<=1,label+' squeezed wheel '+JSON.stringify(c));
     for(const [s,r] of Object.entries(m.boxes))if(r.w&&r.h){assert(r.y>=-1&&r.bottom<=m.height+1,label+' outside viewport '+s+JSON.stringify(r));}
     // Grid children must actually fit their cells, not just the document's bounds.
     assert(m.boxes['.bets-panel'].bottom<=m.boxes['.inventory'].y+1,label+' bets overlap inventory');
