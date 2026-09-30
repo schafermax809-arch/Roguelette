@@ -4,7 +4,7 @@
 // can build on the same evaluation without changing the controls.
 const RULES = Object.freeze({ spins: 5, numberScore: 100, outsideScore: 20, zeroMultiplier: 0.75, spinDuration: 2400 });
 const CHIP_TYPES = [
-    { name: "Basic", symbol: "•", effect: "Der verlässliche Allrounder. Normale Punkte auf jeder Wettart." },
+    { name: "Basic", symbol: "•", effect: "Bei jedem Treffer: normale Basispunkte. Außenwette +20, Zahlenwette +100 vor Tischregeln." },
     { name: "Crimson", symbol: "♦", effect: "×1,5 Punkte auf ROT. Alle anderen Wetten bleiben unverändert.", bonus: "red", multiplier: 1.5 },
     { name: "Onyx", symbol: "●", effect: "×1,5 Punkte auf SCHWARZ. Alle anderen Wetten bleiben unverändert.", bonus: "black", multiplier: 1.5 },
     { name: "Sniper", symbol: "⊕", effect: "×3 Punkte auf eine einzelne Zahl. Kein Bonus auf Außenwetten.", bonus: "number", multiplier: 3 },
@@ -33,7 +33,7 @@ const CHIP_CATALOG = [...CHIP_TYPES, HIGH_ROLLER, ZERO_CHIP, GAMBLER_CHIP, ...EX
 const MUTATIONS = Object.freeze({
     Polished: { symbol: "✦", description: "×1,5 auf die Punkte dieses Chips, zusätzlich zum Chip-Effekt." },
     Echo: { symbol: "↻", description: "25 % Chance auf genau eine zusätzliche Wertung bei einem Treffer." },
-    Lucky: { symbol: "♣", description: "+1 Luck für seltenere Token-Upgrades. Pro Luck: Common −2 Prozentpunkte, Rare +1, Epic +0,7 und Legendary +0,3 (bis 10 Luck). Roulette bleibt unverändert." },
+    Lucky: { symbol: "♣", description: "+1 Luck für seltenere Slot-Gewinne. Pro Luck: Common −2 Prozentpunkte, Rare +1, Epic +0,7 und Legendary +0,3 (bis 10 Luck). Roulette bleibt unverändert." },
     Expanded: { symbol: "+", description: "+1 Chip-Platz, solange dieser Chip im Build bleibt." }
 });
 const WHEEL_ITEMS = Object.freeze({
@@ -481,6 +481,19 @@ function resolveSpin(state, result, random = Math.random) {
     if (state.phase === "lost" && state.bossWheel) { state.wheel = state.bossWheel; state.bossWheel = null; }
     return true;
 }
+// Preview resolves private copies through the real spin pipeline; never consumes game RNG.
+function previewBet(state,chipId,type,value){
+ const base=structuredClone(state);base.phase='ready';
+ if(!placeBet(base,chipId,type,value))return null;
+ const bet=base.placedBets.find(b=>b.chip.id===chipId),hits=base.wheel.filter(field=>checkWin(bet,field));
+ const totals=[],chipPoints=[],traces=[];
+ for(const result of hits)for(const random of [()=>.999999,()=>0]){
+  const sample=structuredClone(base);if(!startSpin(sample))return {blocked:true,hits:hits.length,total:base.wheel.length};
+  resolveSpin(sample,result,random);const entry=sample.breakdown.find(e=>e.chipId===chipId);
+  totals.push(sample.spinScore);chipPoints.push(entry.points);traces.push(entry.effects);
+ }
+ return {hits:hits.length,total:base.wheel.length,min:totals.length?Math.min(...totals):0,max:Math.max(0,...totals),chipMin:chipPoints.length?Math.min(...chipPoints):0,chipMax:Math.max(0,...chipPoints),effects:traces[0]||[],varies:totals.some(n=>n!==totals[0]),multiple:base.placedBets.length>1};
+}
 function startSpin(state) {
     if (state.phase !== "ready" || !state.placedBets.length || state.spinsLeft <= 0 || missingGreedy(state).length) return false;
     state.activeHousePhase=housePhase(state);state.roomSpins=(state.roomSpins||0)+1;
@@ -884,7 +897,7 @@ function decodeRun(text){
 }
 
 if (typeof module !== "undefined" && module.exports) {
-    module.exports = { RULES, CHIP_TYPES, HIGH_ROLLER, ZERO_CHIP, GAMBLER_CHIP, CHIP_CATALOG, MUTATIONS, WHEEL_ITEMS, WHEEL_LIMITS, RELIC_TYPES, betFamily, applyRelics, moveRelic, removeRelic, hasMutation, chipCapacity, updateBuildStats, removeChip, tableRewards, claimReward, skipReward, useWheelItem, createChip, createState, checkWin, calculateBetScore, resolveSpin, startSpin, nextRound, placeBet, returnChip };
+    module.exports = { previewBet, RULES, CHIP_TYPES, HIGH_ROLLER, ZERO_CHIP, GAMBLER_CHIP, CHIP_CATALOG, MUTATIONS, WHEEL_ITEMS, WHEEL_LIMITS, RELIC_TYPES, betFamily, applyRelics, moveRelic, removeRelic, hasMutation, chipCapacity, updateBuildStats, removeChip, tableRewards, claimReward, skipReward, useWheelItem, createChip, createState, checkWin, calculateBetScore, resolveSpin, startSpin, nextRound, placeBet, returnChip };
     Object.assign(module.exports, { workshopChoices, versionTwoFloorMap, buildTokenPool, previewWheelItem, wheelComposition, legacyFloorMap, ECONOMY, slotPrice, refillPrice, formatPoints, BUILD_EVENTS, resolveBuildEvent, CURSES, chipLoad, buildFits, grantCurse, detectSynergies, activeSynergies, missingGreedy, SAVE_VERSION, encodeRun, decodeRun, mergeProgress, mergeRecords, ACHIEVEMENTS, START_LOADOUTS, normalizeProgress, recordAchievementSpin, contentUnlocked, EVENTS, FLOORS, floorConfig, housePhase, normalizeRecords, updateRecords, continueEndless, createFloorMap, currentMap, canEnterRoom, advanceFloor, FLOOR_MAP, currentRoom, enterRoom, buyOffer, rerollShop, resolveRoom });
     Object.assign(module.exports, {TOKEN_TYPES,TOKEN_POOLS,TOKEN_ART_WEIGHTS,RARITIES,rarityWeights,rollTokenReward,beginToken,claimToken,discardToken,CHIP_WORK,previewChipWork,applyChipWork,buySlotUpgrade,slotUpgradePrice});
 }
@@ -944,6 +957,7 @@ function initializeGame() {
     const key = (type, value) => type + ":" + value;
     const feel=GameFeel.create({getState:()=>state,render,tone,soundEnabled:()=>soundEnabled,mutations:MUTATIONS,curses:CURSES,work:CHIP_WORK,
         synergies:()=>activeSynergies(state),room:()=>currentRoom(state),
+        previewChip:id=>{const bet=state.placedBets.find(b=>b.chip.id===id);return bet?Onboarding.previewText(previewBet(state,id,bet.type,bet.value)):null;},
         previewWork:(id,m)=>previewChipWork(state,id,m),applyWork:(id,m)=>applyChipWork(state,id,m),
         chooseChip:(id,placed)=>{if(state.phase!=='ready')return;if(placed)returnChip(state,id);else state.selectedChip=id;render();say(placed?'Chip zurückgenommen.':'Chip gewählt. Jetzt ein Wettfeld antippen.');},
         advance:()=>{if(nextRound(state)){renderBoard();render();showJourney();}}
@@ -974,6 +988,7 @@ function initializeGame() {
             oscillator.stop(audioContext.currentTime + duration + .01);
         } catch { /* Audio support must never block a spin. */ }
     }
+    const guide=Onboarding.create({getState:()=>state,started:()=>runStarted,room:()=>currentRoom(state),synergies:()=>activeSynergies(state),preview:(id,type,value)=>previewBet(state,id,type,value)});
     function makeBet(type, value, label, color, subtitle) {
         // A group holds separate buttons; chip buttons are never nested in buttons.
         const cell = document.createElement("div");
@@ -994,7 +1009,7 @@ function initializeGame() {
         }
         button.addEventListener("click", () => {
             if (state.phase !== "ready") return;
-            if (state.selectedChip === null) { say("Wähle zuerst einen Chip aus deinem Inventar."); return; }
+            if (state.selectedChip === null) { guide.preview(type,value);say("Wähle einen Chip zum Setzen. Gesetzte Wetten kannst du hier prüfen."); return; }
             const chip = state.chips.find(item => item.id === state.selectedChip);
             if (placeBet(state, chip.id, type, value)) {
                 feel.closeInfo();
@@ -1002,6 +1017,8 @@ function initializeGame() {
                 say(chip.name + " gesetzt. Du kannst weitere Chips setzen oder drehen.");
             } else say("The Minimalist: maximal 3 Chips. Nimm zuerst einen gesetzten Chip zurück.");
         });
+        button.addEventListener("pointerenter",event=>{if(event.pointerType==='mouse')guide.preview(type,value);});
+        button.addEventListener("focus",()=>guide.preview(type,value));
         const stack = document.createElement("div");
         stack.className = "bet-stack";
         cell.append(button, stack);
@@ -1114,6 +1131,7 @@ function initializeGame() {
         }) : []));
     }
     function render() {
+        queueMicrotask(()=>guide.update());
         autoSave();
         $("open-tokens").textContent = "✦ " + state.tokens.length;$("open-tokens").hidden=!state.tokens.length&&!state.pendingToken;
         $("open-tokens").disabled = !["ready","won","map","shop","slot"].includes(state.phase);
@@ -1132,6 +1150,7 @@ function initializeGame() {
         renderChips();
         renderRelics();
         $("show-scoring").disabled = !state.lastSpin || state.phase === "spinning";
+        $('show-scoring').textContent=state.lastSpin ? state.lastSpin.winners+' / '+state.lastSpin.bets+' WETTEN GETROFFEN ↗' : 'AUSWERTUNG ↗';
         if ($("relic-dialog").open) renderRelicDetails();
         $("edit-build").disabled = state.phase === "spinning";
         $("edit-build").textContent = 'Build';
@@ -1146,8 +1165,8 @@ function initializeGame() {
         $("table-number").textContent = String(state.floor).padStart(2,"0")+" / " + currentRoom(state).name.toUpperCase();
         if (bossActive) $("table-number").textContent = "♛ BOSS AKTIV · "+currentRoom(state).name.toUpperCase();
         $("score").textContent = format(state.score);
-        $("target-label").textContent = "Ziel: " + format(state.target);
-        $("progress-label").textContent = Math.min(100, Math.floor(state.score / state.target * 100)) + " %";
+        $("target-label").textContent = "TISCHZIEL " + format(state.target);
+        $("progress-label").textContent = state.score>=state.target ? "ZIEL ERREICHT" : "Noch " + format(state.target-state.score);
         $("progress").max = state.target;
         $("progress").value = Math.min(state.target, state.score);
         $("spins").textContent = state.spinsLeft;
@@ -1158,7 +1177,7 @@ function initializeGame() {
         $("bet-count").textContent = state.placedBets.length + " / " + (bossActive && currentRoom(state).name==="The Minimalist" ? Math.min(3,state.chips.length) : state.chips.length) + " gesetzt";
         $("clear").disabled = state.phase !== "ready" || state.placedBets.length === 0;
         $("spin").disabled = state.phase === "spinning" || (state.phase === "ready" && (!state.placedBets.length || missingGreedy(state).length>0));
-        $("spin").title=missingGreedy(state).length?'Greedy zuerst setzen: '+missingGreedy(state).map(c=>chipDisplayName(state,c)).join(', '):'';
+        $("spin").title=missingGreedy(state).length?'Greedy zuerst setzen: '+missingGreedy(state).map(c=>chipDisplayName(state,c)).join(', '):state.phase==='ready'&&!state.placedBets.length?'Setze zuerst einen Chip auf ein Wettfeld.':'';
         if(state.phase==='ready'&&missingGreedy(state).length)$('bet-count').textContent+=' · '+missingGreedy(state).length+' Greedy fehlt';
         $("spin").textContent = state.phase === "won" ? "WEITER ZUR MAP →" : state.phase === "lost" ? (state.endless?"ENDLESS-ERGEBNIS →":"NEUER RUN ↻") : state.phase === "spinning" ? "DAS RAD DREHT …" : "RAD DREHEN ↗";
         if (state.phase === "slot") $("spin").textContent = "UPGRADE ANSEHEN ✦";
@@ -1283,8 +1302,8 @@ function initializeGame() {
     });
     $("close-build").addEventListener("click", () => $("build-dialog").close());
     function rewardDescription(offer) {
-        if(offer.type==='slot')return 'Sofortiger Zufalls-Spin · 55 % Chip, 25 % Relic, 20 % Rad-Item. Alle drei Slots nutzen denselben Pool. Luck erhöht die Seltenheit.';
-        if (offer.type === "token") return TOKEN_TYPES[offer.name].type ? "Garantiert " + ({chip:"einen Chip",relic:"ein Relic",mutation:"eine Mutation"}[TOKEN_TYPES[offer.name].type]) + ". Seltenheit und Upgrade bestimmt die Slot-Machine." : "55 % Chip · 25 % Relic · 20 % Rad-Item. Luck verbessert die Seltenheit.";
+        if(offer.type==='slot')return 'Sofortiger Zufalls-Spin · 55 % Chip, 25 % Relic, 20 % Rad-Werkzeug. Alle drei Slots nutzen denselben Pool. Luck erhöht die Seltenheit.';
+        if (offer.type === "token") return TOKEN_TYPES[offer.name].type ? "Garantiert " + ({chip:"einen Chip",relic:"ein Relic",mutation:"eine Mutation"}[TOKEN_TYPES[offer.name].type]) + ". Seltenheit und Upgrade bestimmt die Slot-Machine." : "55 % Chip · 25 % Relic · 20 % Rad-Werkzeug. Luck verbessert die Seltenheit.";
         if (offer.type === "mutation") return MUTATIONS[offer.name].description;
         if (offer.type === "item") return WHEEL_ITEMS[offer.name].rarity + " · " + WHEEL_ITEMS[offer.name].description;
         if (offer.type === "relic") return RELIC_TYPES[offer.name].description;
@@ -1307,7 +1326,7 @@ function initializeGame() {
             const item = state.items[index];
             const button = document.createElement("button"); button.className = "item-slot";
             button.textContent = item ? item.name : "+";
-            button.title = item ? WHEEL_ITEMS[item.name].description : "Rad-Items im Shop kaufen oder in der Werkstatt erhalten";
+            button.title = item ? WHEEL_ITEMS[item.name].description : "Rad-Werkzeuge im Shop kaufen oder in der Werkstatt erhalten";
             button.disabled = !item || !(state.phase==='ready'||state.phase==='map'&&currentRoom(state)?.type==='workshop');
             if (item) button.addEventListener("click", () => {
                 openWorkbench(item);
@@ -1527,9 +1546,9 @@ function initializeGame() {
             button.className = 'route-node ' + room.type + (room.id===state.currentRoom?' current':'') + (available ? ' reachable' : '') + (state.visited.includes(room.id) ? ' visited' : '');
             button.dataset.room = room.id; button.style.left = x/6+'%'; button.style.top = y/4.8+'%';
             button.innerHTML = gameIcon(room.id.endsWith('stakes') ? 'stakes' : room.type);
-            if(room.type!=='boss'){const label=document.createElement('span');label.className='route-type-label';label.textContent=room.id.endsWith('stakes')?'RISIKO':({table:'TISCH',shop:'SHOP',workshop:'WERKBANK',event:'EREIGNIS'}[room.type]);button.append(label);}
+            if(room.type!=='boss'){const label=document.createElement('span');label.className='route-type-label';label.textContent=room.id.endsWith('stakes')?'RISIKO':({table:'TISCH',shop:'SHOP',workshop:'WERKSTATT',event:'EREIGNIS'}[room.type]);button.append(label);}
             if (room.type === 'boss') { const label = document.createElement('span'); label.className = 'boss-node-label'; label.textContent = 'FLOOR-BOSS'; button.append(label); }
-            button.setAttribute('aria-label', room.name + '. ' + roomInfo(room));
+            button.setAttribute('aria-label', (room.id===state.currentRoom?'Du bist hier. ':available?'Wählbar. ':'Gesperrt. ')+room.name + '. ' + roomInfo(room));
             button.setAttribute('aria-describedby','map-room-detail');
             if (state.currentRoom === room.id) button.setAttribute('aria-current','step');
             button.addEventListener('mouseenter',()=>inspectMapRoom(room)); button.addEventListener('focus',()=>inspectMapRoom(room));
@@ -1590,7 +1609,7 @@ function initializeGame() {
             const price=document.createElement('span');price.className='price-tag';price.textContent=offer.sold?'VERKAUFT':offer.price+' ◉';
             const tip=document.createElement('span');tip.className='goods-tooltip';tip.id='offer-tip-'+index;tip.textContent=rewardDescription(offer);tip.setAttribute('role','tooltip');
             card.setAttribute('aria-label',offer.name+', '+offer.price+' Münzen'+(offer.sold?', verkauft':''));card.setAttribute('aria-describedby',tip.id);
-            const effect=document.createElement('span');effect.className='goods-effect';effect.textContent=offer.type==='slot'?'Zufälliger Chip, Relic oder Rad-Item':rewardDescription(offer);
+            const effect=document.createElement('span');effect.className='goods-effect';effect.textContent=offer.type==='slot'?'Zufälliger Chip, Relic oder Rad-Werkzeug':rewardDescription(offer);
             card.append(category,art,name,effect,price,tip);shelf.append(card);
         });
         const pane=document.createElement('aside');pane.id='shop-inspector';pane.className='shop-inspector';
@@ -1602,7 +1621,7 @@ function initializeGame() {
         if(state.tokens.length)footer.insertBefore(journeyButton('✦ '+state.tokens.length+' ALTE TOKENS',openTokens),footer.children[1]);
         $("room-actions").append(layout,footer);
         const capacity=document.createElement('div');capacity.className='capacity-offer';
-        const slotText=document.createElement('span');slotText.textContent='⊕ SLOT-CHIP / PLATZMARKE · Common · +1 Chip-Platz für diesen Run';
+        const slotText=document.createElement('span');slotText.textContent='⊕ PLATZMARKE · Common · +1 Chip-Platz für diesen Run';
         const slotBuy=journeyButton((state.slotUpgrades>=6?'AUSVERKAUFT':slotUpgradePrice(state)+' ◉ · KAUFEN'),()=>{const result=buySlotUpgrade(state);render();renderShop();$('room-feedback').textContent=result.message;if(result.ok){feel.punch($('capacity-label'),true);tone(660);}},state.slotUpgrades>=6||state.coins<slotUpgradePrice(state));slotBuy.id='buy-slot-upgrade';capacity.append(slotText,slotBuy);$('room-actions').append(capacity);
         if(shopChoice===null||state.shopOffers[shopChoice]?.sold)shopChoice=state.shopOffers.findIndex(o=>!o.sold);if(shopChoice>=0&&state.shopOffers[shopChoice])selectShopOffer(shopChoice);
     }
@@ -1668,7 +1687,7 @@ function initializeGame() {
     $("show-map").addEventListener("click", showJourney);
     $("close-map").addEventListener("click", () => $("map-dialog").close());
     const reelIds=['reel-type','reel-rarity','reel-upgrade'];
-    const typeNames={chip:'CHIP',relic:'RELIC',item:'RAD-ITEM',mutation:'MUTATION'};
+    const typeNames={chip:'CHIP',relic:'RELIC',item:'RAD-WERKZEUG',mutation:'MUTATION'};
     function reelTile(value) {
         const tile=document.createElement('div');tile.className='reel-tile';
         const art=document.createElement('span');art.className='reel-symbol';
@@ -1704,7 +1723,7 @@ function initializeGame() {
     function openTokens() {
         if(tokenAnimating)return;
         $('token-feedback').textContent='';$('slot-machine').hidden=false;
-        $('token-odds').textContent='Luck '+state.luck+' · '+RARITIES.map((name,index)=>name+' '+formatRate(rarityWeights(state.luck)[index])+' %').join(' · ')+'. Standard: 55 % Chip / 25 % Relic / 20 % Rad-Item. Luck verändert das Roulette nicht.';
+        $('token-odds').textContent='Luck '+state.luck+' · '+RARITIES.map((name,index)=>name+' '+formatRate(rarityWeights(state.luck)[index])+' %').join(' · ')+'. Standard: 55 % Chip / 25 % Relic / 20 % Rad-Werkzeug. Luck verändert das Roulette nicht.';
         $('token-inventory').hidden=!!state.pendingToken;
         $('slot-lever').hidden=!!state.pendingToken;
         if(!$('token-dialog').open)$('token-dialog').showModal();
@@ -1812,7 +1831,7 @@ function initializeGame() {
     function startNewRun(){
         pendingSpinSnapshot=null;recoveryNotice="";removeRunSave();lastSaveSignature="";
         state = freshRun(); runStarted = true; shopChoice = null; selectedMapRoom = null; inspectedChip = null;
-        $("start-screen").close(); renderBoard(); resetResult(); render(); say("Dein Run beginnt. Setze deinen ersten Chip.");
+        $("start-screen").close(); renderBoard(); resetResult(); render(); guide.newRun();say("Dein Run beginnt. Setze deinen ersten Chip.");
     }
     $("start-run").addEventListener("click",()=>{if(runStarted)$("restart-dialog").showModal();else startNewRun();});
     $("cancel-restart").addEventListener("click",()=>$("restart-dialog").close());

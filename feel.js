@@ -10,8 +10,9 @@
   const events=[{kind:'landing',name:'Ergebnis',label:spin.result.number+' · '+({red:'ROT',black:'SCHWARZ',green:'GRÜN'}[spin.result.color]),number:spin.result.number}];
   for(const entry of state.breakdown.filter(e=>e.won)){
    const effects=entry.effects?.length?entry.effects:[{name:entry.name,label:'+'+integer(entry.points)}];
-   effects.forEach((effect,index)=>events.push({kind:index===0?'bet':'chip',chipId:entry.chipId,type:entry.betType,value:entry.betValue,name:index===0?entry.name+' · Basis':effect.name,label:effect.label}));
+   effects.forEach((effect,index)=>events.push({kind:index===0?'bet':'chip',chipId:entry.chipId,type:entry.betType,value:entry.betValue,name:index===0?entry.name+' · '+({red:'ROT',black:'SCHWARZ',odd:'UNGERADE',even:'GERADE',low:'LOW',high:'HIGH'}[entry.betValue]??entry.betValue)+' getroffen':effect.name,label:effect.label}));
   }
+  if(!spin.winners){const bets=[...new Set(state.breakdown.map(e=>({red:'ROT',black:'SCHWARZ',odd:'UNGERADE',even:'GERADE',low:'LOW',high:'HIGH'}[e.betValue]??String(e.betValue))))];events.push({kind:'miss',name:'Wette: '+bets.join(' · '),label:'Kein Treffer → +0'});}
   for(const r of state.relicTrace.filter(r=>r.triggered&&r.before!==r.after))events.push({kind:'relic',id:r.id,name:r.name,label:r.effect});
   for(const note of state.synergyTrace||[])events.push({kind:'synergy',name:note.split(' · ')[0],label:note.split(' · ').slice(1).join(' · ')});
   for(const [key,name]of [['bossPenalty','Haussteuer'],['housePenalty','Hausanteil'],['cursePenalty','Volatile']])if(spin[key])events.push({kind:'adjustment',name,label:'−'+integer(spin[key])});
@@ -121,6 +122,7 @@
    if(locked||!anchor.isConnected)return;clearTimeout(hoverTimer);info.replaceChildren();infoAnchor=anchor;
    const head=el('header','peek-heading');head.append(el('small','stamp',rarity(chip)),el('strong','',chip.name));
    const close=el('button','quiet','✕');close.setAttribute('aria-label','Chip-Info schließen');close.onclick=()=>{closeInfo();anchor.focus({preventScroll:true});};head.append(close);info.append(head,el('p','',chip.effect));
+   const betPreview=api.previewChip?.(chip.id);if(betPreview)info.append(el('p','peek-modifier',betPreview));
    if(typeof chip.streak==='number')info.append(el('p','', 'Serie: '+chip.streak));
    for(const name of chip.mutations)info.append(el('p','peek-modifier',name+' · '+api.mutations[name].description));
    if(chip.curse)info.append(el('p','peek-modifier',chip.curse.name+' · '+api.curses[chip.curse.name].description+(chip.curse.name==='Fragile'?' · '+chip.curse.losses+'/3 Verluste':'')+(chip.curse.name==='Addicted'?' · Letzte Wettart: '+(chip.curse.lastFamily||'keine'):'')));
@@ -140,7 +142,7 @@
   document.addEventListener('pointerdown',e=>{if(!info.hidden&&!info.contains(e.target)&&!infoAnchor?.contains(e.target))closeInfo();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!info.hidden){e.stopImmediatePropagation();const anchor=infoAnchor;closeInfo();anchor?.focus({preventScroll:true});}},true);
   window.addEventListener('resize',()=>{if(infoAnchor)position(info,infoAnchor);});window.visualViewport?.addEventListener('resize',()=>{if(infoAnchor)position(info,infoAnchor);});
-  document.addEventListener('scroll',event=>{if(!info.contains(event.target))closeInfo();},true);
+  document.addEventListener('scroll',event=>{if(!info.hidden&&!info.contains(event.target)&&infoAnchor?.isConnected)position(info,infoAnchor);},true);
   function dialog(id,title){const d=el('dialog','ticket feel-dialog');d.id=id;d.setAttribute('aria-label',title);document.body.append(d);return d;}
   const receipt=dialog('room-receipt','Raumergebnis');
   function roomReceipt(){

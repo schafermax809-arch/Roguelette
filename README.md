@@ -1,4 +1,4 @@
-# Roguelette — V1.5.1 · Kontinuierlicher Spin
+# Roguelette — V1.6 · Lernen am Tisch
 
 Ein Roulette-Roguelike auf einem gezeichneten Pokertisch. Starte mit einem Basic-Chip, baue dein Rad und deinen Build um und fordere The House heraus.
 
@@ -63,3 +63,14 @@ Die neuen Feel-Tests prüfen Chip-Inspektion, Auswahl/Rücknahme, Auswertung, Ra
 - Spielregeln, Zufall, Preise, Saves und Layout bleiben kompatibel. Reduced Motion überspringt Bewegung.
 
 Validierung: Modelltests; WebKit/Chromium mit zehn aufeinanderfolgenden Spins, kurzen iPad-Viewports, Desktop und Telefon; Nulltreffer, 18.900 Punkte und Reload während der Auswertung. Kein Test auf physischer iPad-Hardware: tatsächliche Bildrate und Audio dort noch subjektiv prüfen.
+
+## V1.6 – Einstieg ohne Regelwand
+
+- Aktionsgesteuerte erste Einführung: Basic wählen → setzen → Tischziel und Spins erkennen → drehen. Ziel und Spin-Hinweis erscheinen gemeinsam; kein Weiter-Klicken, kein erzwungener Timer. Überspringbar, nur einmal; das Tischbuch erlaubt einen Reset für den nächsten neuen Run.
+- Gespeicherte Erstkontakt-Karten für Map, Shop, Werkstatt, Relics, Mutationen, Synergien, Rad-Werkzeuge, Bosse, Ereignisse und Endless. Immer nur eine relevante Karte.
+- Wettvorschau auf Touch durch Setzen/Antippen einer belegten Wette oder Chip-Info; Desktop zusätzlich Fokus/Hover mit ausgewähltem Chip. Chance zählt die tatsächlichen aktuellen Radfelder. Treffer-Spannen werden mit startSpin/resolveSpin auf privaten Kopien ermittelt, inklusive anderer gesetzter Chips, Relics, Null, Bossen und Zufallseffekten. Kein Verbrauch von Math.random und keine Änderung am Live-Save.
+- Tischziel, fehlende Punkte und SPINS ÜBRIG sichtbar; Anzahl getroffener Wetten öffnet die detaillierte Rechnung. Kein-Treffer erklärt die verfehlte Wette in der schnellen Auswertung.
+- Acht aufklappbare Tischbuch-Kapitel; nur Grundlagen zunächst geöffnet. Einheitliche Begriffe: Chip-Platz, Platzmarke und Rad-Werkzeug; alte Tokens bleiben aus Kompatibilitätsgründen als solche benannt.
+- Keine Balance-, Preis-, Drop- oder Routenänderung. Bestehende Saves mit Run-Fortschritt starten keine Einführung. Onboarding nutzt den separaten, fehlertoleranten Browser-Schlüssel roguelette-onboarding-v1.
+
+Neue Tests: onboarding.test.cjs, onboarding-browser.cjs und onboarding-concepts-browser.cjs. WebKit/Chromium prüfen frischen Start, Touch/Desktop, Vorschau, Überspringen, Reload, Map/Shop, einmalige Konzepte und Reset; die bestehenden Safari-Viewport- und vollständigen Run-Tests bleiben erhalten.

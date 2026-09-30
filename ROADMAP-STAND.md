@@ -907,3 +907,7 @@ Die Logiktests benötigen nur Node.js: node --test tests/core.test.cjs tests/gam
 ## V1.5.1 – Bestehendes Spiel poliert
 
 Kontinuierliche Roulette-Kurve statt linearer Geschwindigkeitsstufen, eine Landung, synchronisierte Klicks, kurze begrenzte Score-Auswertung und dezente Interaktionen. Alte Rad-Transition und redundante Flash-/Transfer-Effekte entfernt. Keine neuen Gameplay-Systeme. Regressionen für zehn Spins und die mathematische Bewegungskurve ergänzt. Physischer iPad-Safari-Test für Bildrate/Audio bleibt offen.
+
+## V1.6 – First-Time User Experience
+
+Kurze überspringbare Einführung im ersten echten Run, gespeicherte einmalige Konzeptkarten, zustandsgetreue Wettvorschau, sichtbares Tischziel/Restpunkte/Spins und gegliedertes Tischbuch umgesetzt. Kein neues Gameplay und keine Balanceänderung. Weiter offen: echte Erstspieler beobachten (insbesondere Punktespannen großer Builds) und physisches iPad Safari testen.
