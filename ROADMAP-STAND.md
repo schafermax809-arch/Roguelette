@@ -903,3 +903,7 @@ Aufgaben 54 bis 62: Run-Währung, Slot Tokens, Slot-Machine, Rarity-Pools und Lu
 ## Starten und testen
 index.html im Browser öffnen. Nach einem Update Strg + F5 verwenden.
 Die Logiktests benötigen nur Node.js: node --test tests/core.test.cjs tests/game.test.cjs tests/relics.test.cjs
+
+## V1.5.1 – Bestehendes Spiel poliert
+
+Kontinuierliche Roulette-Kurve statt linearer Geschwindigkeitsstufen, eine Landung, synchronisierte Klicks, kurze begrenzte Score-Auswertung und dezente Interaktionen. Alte Rad-Transition und redundante Flash-/Transfer-Effekte entfernt. Keine neuen Gameplay-Systeme. Regressionen für zehn Spins und die mathematische Bewegungskurve ergänzt. Physischer iPad-Safari-Test für Bildrate/Audio bleibt offen.

@@ -1,14 +1,13 @@
 /* A small shared vocabulary: printed slips, stamped edges, mechanical motion. */
-:root{--paper:#e6d6a8;--paper-ink:#273c32;--stamp:#a5463d;--snap:140ms}
+:root{--paper:#e6d6a8;--paper-ink:#273c32;--stamp:#a5463d;--motion-fast:90ms;--motion-normal:140ms;--ease-mechanical:cubic-bezier(.2,.7,.3,1)}
 .ticket{background:var(--paper);color:var(--paper-ink);border:3px double #796745;box-shadow:5px 7px #10271fcc;border-radius:3px}
 .stamp{display:inline-block;border:2px solid currentColor;padding:4px 7px;color:var(--stamp);letter-spacing:1px;font-weight:900;transform:rotate(-2deg)}
 .feel-layer{position:fixed;inset:0;pointer-events:none;z-index:90}
 .effect-slip{position:fixed;max-width:min(290px,calc(100vw - 24px));padding:7px 10px;background:var(--paper);color:var(--paper-ink);border:2px solid #796745;box-shadow:3px 4px #122e25;display:flex;flex-direction:column;gap:3px;overflow-wrap:anywhere;font-size:11px;text-align:center;z-index:2}
-.effect-slip>span{font-size:15px;color:#963e34}.score-transfer{position:fixed;color:var(--gold);font-size:21px;text-shadow:2px 2px #132d23}
+.effect-slip>span{font-size:15px;color:#963e34}
 .score-ticker{position:fixed;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);max-width:calc(100vw - 24px);padding:7px 12px;background:#172e28;border:1px dashed #c7b67f;color:#f3dfab;font-size:11px;text-align:center;box-shadow:3px 4px #12271f}
 .score{font-variant-numeric:tabular-nums}.is-scoring .app{cursor:wait}.is-scoring .app button{pointer-events:none}
-.feel-hit{animation:ink-hit .48s steps(3,end)}
-@keyframes ink-hit{0%,100%{filter:none}35%{filter:brightness(1.5)}65%{filter:brightness(1.1)}}
+
 .bet-cell.landing-hit{box-shadow:inset 0 0 0 3px #f4d98b;background-color:#9c844b66}
 .wheel-number.landing-hit{color:#18362b;background:#f4dda2;border-radius:2px;text-shadow:none;outline:1px solid #163326}
 .chip-peek{position:fixed;z-index:110;width:min(330px,calc(100vw - 24px));padding:14px;overflow:auto;font-size:12px;line-height:1.45}
@@ -18,10 +17,10 @@ dialog.feel-dialog h2{color:var(--paper-ink);font-size:24px;margin:14px 0;letter
 .receipt-lines{display:grid;grid-template-columns:1fr auto;gap:13px 16px;border-block:2px dashed #796745;padding:16px 0;font-size:13px}.receipt-lines dd{margin:0;text-align:right;font-size:18px}.receipt-activated{font-size:11px!important;margin:16px 0 24px;color:#435344}.feel-dialog .spin-button{min-height:44px}.feel-dialog .quiet,.feel-dialog .purchase-button{min-height:44px}
 #synergy-dialog{width:min(520px,calc(100vw - 28px))}#synergy-dialog .synergy-card{background:none;color:var(--paper-ink);border:0;border-bottom:1px dashed #796745;box-shadow:none;padding:12px 0}#synergy-dialog .synergy-card strong{color:#963e34}#synergy-dialog small{display:block;margin-top:6px;line-height:1.5}
 #show-synergies{white-space:nowrap;color:#f1d48d}
-.goods-card{transition:transform var(--snap) steps(4,end),box-shadow var(--snap);transform:rotate(-1deg)}.goods-card:nth-child(even){transform:rotate(1deg)}
-@media(hover:hover){.goods-card:not(.sold):hover{transform:translateY(-5px) rotate(-2deg);box-shadow:5px 9px #112b23}}
+.goods-card{transition:transform var(--motion-normal) var(--ease-mechanical),box-shadow var(--motion-fast);transform:rotate(-1deg)}.goods-card:nth-child(even){transform:rotate(1deg)}
+@media(hover:hover){.goods-card:not(.sold):hover{transform:translateY(-2px) rotate(-1deg);box-shadow:5px 9px #112b23}}
 .goods-card[aria-pressed=true]{outline:2px dashed #f4d590;outline-offset:5px}.goods-card.sold::after{content:'VERKAUFT';position:absolute;inset:40% 4px auto;border:3px solid #bc5146;color:#e5c699;background:#473d2bea;font-size:15px;padding:8px 3px;letter-spacing:1px;transform:rotate(-12deg);z-index:3}.goods-card.sold .goods-art{opacity:.45}
-.goods-card.sold::after{animation:stamp-in .18s steps(4,end)}@keyframes stamp-in{from{opacity:0;transform:rotate(-15deg) scale(1.12)}to{opacity:1;transform:rotate(-12deg) scale(1)}}
+.goods-card.sold::after{animation:stamp-in var(--motion-normal) var(--ease-mechanical)}@keyframes stamp-in{from{opacity:0;transform:rotate(-12deg) translateY(-2px)}to{opacity:1;transform:rotate(-12deg)}}
 .shop-inspector{border-top:3px double #bdaa76}.shop-inspector h3{border-bottom:1px dashed #a9ad86;padding-bottom:9px}.goods-card>small{white-space:normal;font-size:8px;line-height:1.2}
 .goods-card,.touch-device .goods-card{height:auto;min-height:245px;grid-template-rows:24px minmax(65px,1fr) 30px auto}.goods-effect{font-size:10px;line-height:1.35;color:#425641;padding:5px 2px 12px;overflow-wrap:anywhere}
 .capacity-offer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;margin-top:14px;border:2px dashed #bbaa77;background:#203b30;font-size:12px}.capacity-offer>span{line-height:1.5}.capacity-offer button{white-space:nowrap;min-height:44px}
@@ -36,4 +35,15 @@ dialog.feel-dialog h2{color:var(--paper-ink);font-size:24px;margin:14px 0;letter
 .route-scroll{min-width:0;max-height:calc(100dvh - 245px);min-height:240px;overflow:auto;overscroll-behavior:contain;padding:8px;scrollbar-color:#c4ae75 #203c31;scrollbar-width:thin;border-block:1px dashed #aab58a55}.route-layout{align-items:start}.route-inspector{align-self:start}.route-scroll .floor-map{margin:0}
 #map-dialog .map-legend{display:block!important;font-size:11px;padding-top:10px;border-top:1px dashed #b5bd8b;line-height:1.6}
 @media(max-width:700px){.capacity-offer{flex-wrap:wrap}.capacity-offer button{width:100%}.bench-comparison{gap:7px;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr)}.bench-before,.bench-after{padding:10px 6px}.bench-comparison strong{font-size:13px}.bench-actions{flex-direction:column}.feel-dialog h2{font-size:20px}.route-type-label{font-size:7px;bottom:-14px}.inventory .section-heading{gap:6px}.inventory .section-heading h2{flex-basis:100%}}
-@media(prefers-reduced-motion:reduce){.feel-hit,.goods-card.sold::after{animation:none}.goods-card{transition:none}.score-transfer,.effect-slip{animation:none}.landing-hit{filter:none}}
+@media(prefers-reduced-motion:reduce){.goods-card.sold::after{animation:none}.goods-card{transition:none}.effect-slip{animation:none}.landing-hit{filter:none}}
+
+/* Independent translate preserves chip/card rotations and map positioning. */
+.effect-slip[hidden]{display:none}
+.score-ticker{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);border:0}
+:where(.spin-button,.purchase-button,.quiet,.journey-button,.bet-target,.route-node,.bench-chip,.bench-tools button){transition:translate var(--motion-fast) var(--ease-mechanical)}
+:where(.spin-button,.purchase-button,.quiet,.journey-button,.bet-target,.route-node,.bench-chip,.bench-tools button):not(:disabled):active{translate:0 2px}
+button:disabled{cursor:default}
+.chip-element.selected{outline:2px solid var(--gold);outline-offset:3px}
+.is-spinning .roulette-wheel{will-change:transform}
+.is-spinning .bets-panel{opacity:.88}
+@media(hover:hover) and (pointer:fine){.chip-element.selected:hover{transform:translateY(-3px) rotate(-9deg)}}

@@ -1,4 +1,4 @@
-# Roguelette — V1.5 · Mechanischer Polish
+# Roguelette — V1.5.1 · Kontinuierlicher Spin
 
 Ein Roulette-Roguelike auf einem gezeichneten Pokertisch. Starte mit einem Basic-Chip, baue dein Rad und deinen Build um und fordere The House heraus.
 
@@ -53,3 +53,13 @@ Die neuen Feel-Tests prüfen Chip-Inspektion, Auswahl/Rücknahme, Auswertung, Ra
 ## Patch-Details
 
 [ROADMAP-STAND.md](ROADMAP-STAND.md) enthält die vollständigen Features, Balance-Werte, Save-Kompatibilität und den Versionsverlauf.
+
+## V1.5.1 – Game-Feel-Pass
+
+- Roulette: eine kontinuierliche Bewegung mit sanfter Beschleunigung und auslaufender Geschwindigkeit; Winkel und Klicks verwenden denselben Frame-Takt. Rotation bleibt zwischen Spins erhalten. Ein kleiner Zeigerimpuls beim tatsächlichen Stopp.
+- Keine doppelte Rad-Landung, Helligkeitsblitze oder mehrfach überlappenden Score-Sprünge. Eine wiederverwendete Effektnotiz statt zusätzlichem sichtbarem Ticker und fliegender Punkteübertragung.
+- Sequentielle Effekte: maximal 140 ms pro Schritt, nominell insgesamt höchstens 1,1 s; Zähler 140–240 ms mit absoluten Zeitmarken. Browser-Throttling kann die reale Dauer verlängern.
+- Dezente Druckreaktionen erhalten vorhandene Chip-/Kartenrotationen und Map-Koordinaten. Shop-Übergang ohne künstliche 180-ms-Pause. Lange Chip-Infos bleiben beim eigenen Scrollen geöffnet.
+- Spielregeln, Zufall, Preise, Saves und Layout bleiben kompatibel. Reduced Motion überspringt Bewegung.
+
+Validierung: Modelltests; WebKit/Chromium mit zehn aufeinanderfolgenden Spins, kurzen iPad-Viewports, Desktop und Telefon; Nulltreffer, 18.900 Punkte und Reload während der Auswertung. Kein Test auf physischer iPad-Hardware: tatsächliche Bildrate und Audio dort noch subjektiv prüfen.

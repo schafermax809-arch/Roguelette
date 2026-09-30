@@ -1215,14 +1215,14 @@ function initializeGame() {
         $("result").textContent = "…";
         $("result-detail").textContent = "Deine Wetten sind jetzt gesperrt.";
         render(); say("Das Rad dreht. Ein Spin wurde eingesetzt."); tone(440);
-        await feel.spin(rotationBefore,rotation,RULES.spinDuration,state.wheel.length);
+        try{await feel.spin(rotationBefore,rotation,RULES.spinDuration,state.wheel.length);
         $('result').textContent=result.number+' · '+({red:'ROT',black:'SCHWARZ',green:'GRÜN'}[result.color]);
         $('spin').textContent='AUSWERTUNG …';
-        try{await feel.scoring(pendingSpinSnapshot,scoreBefore,resultIndex);}finally{
+        await feel.scoring(pendingSpinSnapshot,scoreBefore,resultIndex);}finally{
             state=pendingSpinSnapshot;pendingSpinSnapshot=null;saveRecords();
             $("result").textContent = result.number + " · " + ({ red: "ROT", black: "SCHWARZ", green: "GRÜN" }[result.color]);
             $("result-detail").textContent = result.number === 0 ? (state.lastSpin.zeroMultiplier===1?"Grüner Pakt: kein Null-Abzug.":"Null-Effekt: Gesamter Spin ×0,75.") : "+" + format(state.spinScore) + " Punkte in diesem Spin";
-            renderBoard(); render(); tone(state.spinScore > 0 ? 740 : 240);
+            renderBoard(); render();
             document.querySelector('.bet-cell[data-type="number"][data-value="'+result.number+'"]')?.classList.add('landing-hit');
             $('wheel').children[resultIndex]?.classList.add('landing-hit');
             if(['won','lost'].includes(state.phase))feel.roomReceipt();
@@ -1561,7 +1561,7 @@ function initializeGame() {
             const result=buyOffer(state,index,target);render();
             if(result.ok)purchase.disabled=true;
             if(result.ok)feel.sold(index);
-            if(result.ok&&state.phase==='slot'){$('room-dialog').querySelectorAll('button').forEach(b=>b.disabled=true);setTimeout(()=>{openTokens();spinSlot(true);},reducedMotion.matches?0:180);}
+            if(result.ok&&state.phase==='slot'){$('room-dialog').querySelectorAll('button').forEach(b=>b.disabled=true);openTokens();spinSlot(true);}
             else{renderShop();$('room-feedback').textContent=result.message;}
         },offer.sold||state.coins<offer.price||full||(offer.type==='token'&&state.tokens.length>=3));
         purchase.id='purchase-offer';purchase.classList.add('purchase-button');

@@ -22,3 +22,10 @@ test('Chip work is atomic, preview-only until confirmed, once per room and save 
  assert(g.applyChipWork(s,0,'Polished').ok);assert.equal(s.coins,12);assert.deepEqual(s.chips[0].mutations,['Polished']);assert(!g.applyChipWork(s,0,'Echo').ok);
  const saved=g.decodeRun(g.encodeRun(s));assert(saved.ok);assert(!g.applyChipWork(saved.state,0,'Echo').ok);
 });
+
+test('Spin curve has continuous acceleration, one speed peak and a stationary landing',()=>{
+ const p=feel.spinProgress,h=1e-5,velocity=t=>(p(t+h)-p(t-h))/(2*h);
+ assert.equal(p(0),0);assert.equal(p(1),1);assert(velocity(0)<.001);assert(velocity(1)<.001);
+ let previous=0;for(let i=1;i<=1000;i++){const next=p(i/1000);assert(next>=previous);previous=next;}
+ assert(velocity(.33)>velocity(.1));assert(velocity(.6)>velocity(.8));assert(velocity(.8)>velocity(.95));
+});
