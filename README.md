@@ -1,10 +1,10 @@
-# Roguelette — V1.4.2 · Safari-Rad-Fix
+# Roguelette — V1.5 · Mechanischer Polish
 
 Ein Roulette-Roguelike auf einem gezeichneten Pokertisch. Starte mit einem Basic-Chip, baue dein Rad und deinen Build um und fordere The House heraus.
 
 ## Spielen
 
-`index.html` in einem aktuellen Browser öffnen oder den Ordner mit einem statischen Webserver bereitstellen. Kein Build erforderlich. Für iPad/Safari die bereitgestellte HTTPS-Adresse öffnen; `index.html`, `script.js`, `style.css` und `tablet.css` müssen gemeinsam ausgeliefert werden.
+`index.html` in einem aktuellen Browser öffnen oder den Ordner mit einem statischen Webserver bereitstellen. Kein Build erforderlich. Für iPad/Safari die bereitgestellte HTTPS-Adresse öffnen; `index.html`, `script.js`, `feel.js`, `style.css`, `tablet.css` und `feel.css` müssen gemeinsam ausgeliefert werden.
 
 ## Enthalten
 
@@ -14,6 +14,10 @@ Ein Roulette-Roguelike auf einem gezeichneten Pokertisch. Starte mit einem Basic
 - Entscheidungsevents, Freischaltungen, Bestwerte und Autosave mit Backup-Wiederherstellung
 - Eigenes Touch-Layout für iPad 10 und iPad Pro in beiden Ausrichtungen sowie Split View
 - Größere Touch-Ziele, Tablet-Werkstatt mit Feldraster, angepasste Map und Shop-Ansichten
+- Sequentielle Chip-/Relic-/Synergie-Auswertung, mechanischer Punktezähler und Roulette-Landung
+- Touch-Chip-Inspektion mit ausdrücklicher Auswahl/Rücknahme; am Desktop Hover und Shift-Klick
+- Raum-Abrechnung als Ticket, aktive Synergien über ✦ und gestempelte Shop-Angebote
+- Slot-Chip/Platzmarke: sofort +1 Inventarplatz; optionale Chip-Prägung in Werkstätten mit Vorher/Nachher-Vorschau
 
 Spielstände bleiben lokal im Browser und gelten für dieselbe Spieladresse. Browserdaten löschen entfernt sie. Keine Cloud-Synchronisierung. Alte Saves werden weiter geladen; neue Floors nutzen die längere Route.
 
@@ -25,13 +29,15 @@ Mit Node.js 22 oder neuer:
 node --test "tests/*.test.cjs"
 ```
 
-128 Modelltests. Browser-Tests benötigen zusätzlich Playwright und die passenden Browser:
+132 Modelltests. Browser-Tests benötigen zusätzlich Playwright und die passenden Browser:
 
 ```sh
 npm install --no-save playwright
 npx playwright install webkit
 node tests/ipad-browser.cjs
 node tests/safari-viewport.cjs
+node tests/feel-browser.cjs
+node tests/feel-edge-browser.cjs
 ```
 
 Der Tablet-Test verwendet WebKit und Microsoft Edge. Edge muss separat installiert sein; mit `TABLET_ENGINE=webkit` kann ausschließlich WebKit geprüft werden. `TABLET_PROFILE=ipad10` beschränkt auf passende Profile. Die Umgebungsvariablen sind mit der Syntax der jeweiligen Shell zu setzen. Die Standardmatrix prüft 15 Ansichten je Engine, darunter verkleinerte Safari-Fenster und Split View; umfangreichere Dialog-/Kauf-/Werkstatt-Abläufe laufen in sieben repräsentativen Ansichten. Screenshots und Messwerte liegen in `test-results/ipad`.
@@ -41,6 +47,8 @@ Weitere aktuelle Browser-Suiten: `polish-browser.cjs`, `build-expansion-browser.
 Der Safari-Viewport-Test prüft das dreispaltige Touch-Querformat bei 1180 Pixeln Breite und 600–820 Pixeln verfügbarer Höhe in WebKit und Edge sowie vier Pro-Querformate. Er kontrolliert beide Seitenüberläufe, überlappende Panels, sichtbare/antippbare Buttons, Boss mit vollem Build, Setzen, Drehen, Reload und Rotation. Messwerte und Screenshots: `test-results/safari-viewport`. Mit `ENGINE=webkit` lässt sich dieser Test auf WebKit beschränken. V1.4.1 bindet `html`, `body` und `.app` im Tablet-Querformat an `100dvh`; Hochformat, schmale Split Views und Telefone behalten ihren Dokumentfluss. Es werden weder der Tisch skaliert noch Seiteninhalte per Overflow-Regel versteckt.
 
 Die iPad-Prüfung erfolgt per Touch-/Viewport-Emulation in WebKit und Chromium. Ein Test auf physischer iPad-Hardware bleibt sinnvoll, insbesondere für Safari-Leisten, virtuelle Tastatur und Split View.
+
+Die neuen Feel-Tests prüfen Chip-Inspektion, Auswahl/Rücknahme, Auswertung, Raumticket, Map, Shop-Kauf, Platzmarken und Werkstatt inklusive Reload auf Desktop, Telefon und kurzen Tablet-Viewports in beiden Engines. `feel-edge-browser.cjs` prüft Nullpunkte, 18.900 Punkte sowie Reload während der visuellen Auswertung. `feel.js` konsumiert ausschließlich die bereits berechneten Effekte; Animationen würfeln nichts und vergeben keine Punkte. Reduced Motion überspringt Rad- und Zählerbewegungen. Spielstände aus V1.4 bleiben gültig; neue optionale Save-Felder erhalten Standardwerte.
 
 ## Patch-Details
 

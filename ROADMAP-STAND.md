@@ -1,3 +1,31 @@
+# V1.5: Game-Feel und UI/UX-Polish
+
+Stand: 30.09.2026. Bestehende Spielregeln, Chip-/Relic-Werte, Zufalls-Slots, verzweigte Maps und Rad-Werkzeuge bleiben erhalten.
+
+## Spielgefühl
+- Neue wiederverwendbare Präsentationsschicht `feel.js`: aus aufgelösten Modell-Traces entsteht eine geordnete Effekt-Warteschlange. Basiswette → Chip-Bonus → Mutation/Curse/Zusatzwertung → Relics → Synergiehinweise und Abzüge → Punktezähler. Die exakten Berechnungen bleiben in `script.js`; die Anzeige erzeugt keine zweiten Würfe oder Belohnungen.
+- Kurze, vom verantwortlichen Wettfeld, Chip oder Relic ausgehende Effektzettel, kleine mechanische Bewegungen und Übertragung zum Zähler. Normale Ketten dauern ungefähr 0,8–1,5 Sekunden; umfangreiche Builds etwas länger. Die vorhandene Detail-Auswertung bleibt nachlesbar.
+- Ganzzahliger Zähler mit zwölf kurzen Schritten, stärkerem Akzent bei großen Gewinnen und leisem Ticken nur bei aktiviertem Ton. Nullpunkte erzeugen kein unnötiges Hochzählen.
+- Roulette mit Anlauf, schneller Mittelphase, Abbremsung und feldabhängigen Klicks. Landung markiert das tatsächliche Radfeld und die gewinnende Zahl am Tisch. Der Safari-Fix für das runde Rad bleibt erhalten.
+- Raumergebnis als kompaktes Abrechnungsticket mit Score/Ziel, Raumprämie, ausgelösten Effekten und stärkstem Spin. Weiter führt unmittelbar zur vorhandenen Map/Floor-Logik.
+
+## Bedienung und Räume
+- Touch: Antippen inspiziert den Chip, ohne ihn zu setzen oder zurückzunehmen. Das kontextuelle Panel zeigt Seltenheit, Effekt, Mutationen, Curse/Serie und relevante aktive Synergien. Auswahl bzw. Rücknahme ist eine ausdrückliche Aktion; Tippen außerhalb oder Escape schließt das Panel. Desktop behält die schnelle Auswahl, ergänzt um Hover, Shift-Klick und Rechtsklick für Infos.
+- Eigener ✦-Button öffnet aktive Synergien. Die bestehende datengetriebene Erkennung wird wiederverwendet; der vollständige Build-Katalog bleibt separat erreichbar.
+- Shop-Angebote zeigen Seltenheit, Wirkung und Preis, mit kurzem Anheben und VERKAUFT-Stempel. Zufalls-Slots verraten ihre Pools, nicht das noch ungewürfelte Ergebnis. Gekaufte Werkzeuge/Upgrades und gespeicherte Slot-Ergebnisse funktionieren weiterhin wie bisher.
+- Neue Slot-Chip/Platzmarke erweitert sofort das Inventar um einen Platz, ohne Zielchip oder Ersatzwahl. Kosten 8, 12, 16, 20, 24, 28 Münzen; maximal sechs zusätzliche Plätze pro Run. Expanded bleibt zusätzlich wirksam. Alte Glücks-Tokens behalten ihre bisherige Funktion.
+- Chip-Werkbank ergänzt die vorhandene kostenlose Rad-Werkstatt: physische Chip-Auswahl, bestehende Mutationen, Vorher/Nachher, Wirkungsbeschreibung, Preis und Bestätigung. Ein bezahlter Auftrag pro Raum: Polished 8, Echo 6 oder Lucky 5 Münzen. Keine Zahlung bei ungültiger Auswahl, bestehender Mutation oder fehlendem Geld. Auftrag und Mutation überleben Reload.
+- Bestehende zufällige verzweigte Routen bleiben save-kompatibel. Raumtyp-Beschriftung, verbundene nächste Wege, gelaufene Route und Standort sind hervorgehoben. Die Karte öffnet am aktuellen Standort und scrollt innerhalb ihres eigenen Ausschnitts. Künftige Event-Ausgänge und exakte Tischprämien werden nicht vorab verraten.
+- Gemeinsame Gestaltung in `feel.css`: Papierzettel, Stempel, gestrichelte Kanten und kurze mechanische Bewegungen. Popovers bleiben im sichtbaren Viewport; Dialoge besitzen eigene Höhenbegrenzungen. Keine globale Skalierung und keine neue Sperre des Seiten-Overflows.
+
+## Technische Prüfung
+- 132/132 Modelltests, darunter additive Save-Migration, atomare Platzkäufe/Werkstattaktionen und unveränderliche Effekt-Traces.
+- `feel-browser.cjs`: WebKit + Chromium, jeweils iPad 1180×680/600, Telefon 390×844 und Desktop 1366×768; Touch, normale/reduzierte Bewegung, Inspektion, Spin, Ticket, Shop, Synergien, Prägung und Reload.
+- `feel-edge-browser.cjs`: Nullpunkte, 18.900-Punkte-Spin und Reload mitten in der Auswertung; Ergebnis und Münzen werden genau einmal vergeben.
+- `safari-viewport.cjs`: bisherige kurze Tablet-Höhen, volle Builds und runde Radgeometrie weiterhin geprüft.
+- Bestehende Desktop-/Telefon-Endlosroute, zehn Event-Abläufe, Chip-/Relic-Erweiterungen, Slot-Recovery und Rad-Werkstatt bestanden; keine JS-Fehler in diesen Prüfungen.
+- `tablet.css` bleibt unverändert. Echte iPad-Hardware wurde nicht getestet; neue Werkstattpreise und Platzmarken sollten zusätzlich anhand längerer menschlicher Runs balanciert werden.
+
 # V1.4.2: Rundes Roulette-Rad in Safari
 
 - Ursache gezielt in WebKit reproduziert: Der Rahmen war 230 × 230 Pixel groß, das innere Rad durch `height:100%` im gepolsterten Aspect-Ratio-Container jedoch 210 × 230 Pixel. Dadurch wurden Segmente und Zahlen versetzt bzw. abgeschnitten.

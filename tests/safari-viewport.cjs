@@ -42,10 +42,10 @@ fs.mkdirSync(out,{recursive:true});
    async function sweep(label){for(const height of [820,780,744,720,700,680,650,600]){await p.setViewportSize({width:1180,height});await check(label+'-'+height);}}
    await sweep('basic');
    await p.setViewportSize({width:1180,height:720});
-   await p.locator('#chips [data-chip="0"]').tap();await p.locator('#outside-bets .bet-target').first().tap();
+   await p.locator('#chips [data-chip="0"]').tap();await p.locator('#peek-action').tap();await p.locator('#outside-bets .bet-target').first().tap();
    await sweep('placed');
    await p.screenshot({path:path.join(out,engine+'-table.png')});
-   await p.locator('#spin').tap();await p.waitForFunction(()=>!document.querySelector('#spin').disabled);
+   await p.locator('#spin').tap();await p.waitForFunction(()=>!document.querySelector('#spin').disabled);if(await p.locator('#room-receipt').isVisible())await p.keyboard.press('Escape');
    await sweep('resolved');
    await p.reload();await p.locator('#resume-run').tap();await check('reload');
    // A full build, every betting row occupied, a long boss rule and legacy tokens.
@@ -65,10 +65,10 @@ fs.mkdirSync(out,{recursive:true});
    await p.setViewportSize({width:1180,height:680});await p.screenshot({path:path.join(out,engine+'-boss.png')});
    // All three columns remain present on iPad Pro landscape sizes as well.
    for(const [width,height]of [[1194,734],[1210,734],[1366,924],[1376,932]]){await p.setViewportSize({width,height});await check('pro-'+width);}
-   await p.setViewportSize({width:1180,height:720});await p.locator('#spin').tap();await p.waitForFunction(()=>!document.querySelector('#spin').disabled);await sweep('boss-resolved');
+   await p.setViewportSize({width:1180,height:720});await p.locator('#spin').tap();await p.waitForFunction(()=>!document.querySelector('#spin').disabled);if(await p.locator('#room-receipt').isVisible())await p.keyboard.press('Escape');await sweep('boss-resolved');
    await p.setViewportSize({width:820,height:1180});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'portrait horizontal fit');
    await p.setViewportSize({width:1180,height:720});await check('rotation-back');
-   await p.locator('#outside-bets .chip-element').first().tap();assert.equal(await p.locator('#outside-bets .chip-element').count(),1,'placed chip returns on tap');
+   await p.locator('#outside-bets .chip-element').first().tap();await p.locator('#peek-action').tap();assert.equal(await p.locator('#outside-bets .chip-element').count(),1,'placed chip returns after explicit action');
    assert.deepEqual(errors,[]);
    await context.close();
   }finally{await browser.close();}

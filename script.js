@@ -202,7 +202,29 @@ function hasMutation(chip, name) { return (chip.mutations || []).includes(name);
 function chipDisplayName(state, chip) {
     return chip.name + (state.chips.filter(other => other.name === chip.name).length > 1 ? " · Platz " + (state.chips.indexOf(chip) + 1) : "");
 }
-function chipCapacity(state) { return 6 + state.chips.filter(chip => hasMutation(chip, "Expanded")).length; }
+function chipCapacity(state) { return 6 + (state.slotUpgrades || 0) + state.chips.filter(chip => hasMutation(chip, "Expanded")).length; }
+const CHIP_WORK = Object.freeze({Polished:{price:8},Echo:{price:6},Lucky:{price:5}});
+function slotUpgradePrice(state){return 8+4*(state.slotUpgrades||0);}
+function buySlotUpgrade(state){
+    if(state.phase!=='shop'||(state.slotUpgrades||0)>=6)return {ok:false,message:'Keine weitere Platzmarke verfügbar.'};
+    const price=slotUpgradePrice(state);if(state.coins<price)return {ok:false,message:'Nicht genügend Münzen.'};
+    state.coins-=price;state.slotUpgrades=(state.slotUpgrades||0)+1;updateBuildStats(state);
+    return {ok:true,message:'+1 permanenter Chip-Platz · kein Zielchip nötig.'};
+}
+function previewChipWork(state,chipId,mutation){
+    const chip=state.chips.find(c=>c.id===chipId),work=CHIP_WORK[mutation];
+    if(state.phase!=='workshop'||!chip||!work)return {ok:false,message:'Wähle Chip und Arbeit.'};
+    if(state.workshopServiced===state.floor+':'+state.currentRoom)return {ok:false,message:'Dieser Werkstattauftrag ist bereits erledigt.'};
+    if(hasMutation(chip,mutation))return {ok:false,message:mutation+' ist bereits vorhanden.'};
+    if(state.coins<work.price)return {ok:false,message:'Du brauchst '+work.price+' Münzen.'};
+    return {ok:true,price:work.price,before:[...chip.mutations],after:[...chip.mutations,mutation],message:MUTATIONS[mutation].description};
+}
+function applyChipWork(state,chipId,mutation){
+    const preview=previewChipWork(state,chipId,mutation);if(!preview.ok)return preview;
+    state.coins-=preview.price;state.chips.find(c=>c.id===chipId).mutations.push(mutation);
+    state.workshopServiced=state.floor+':'+state.currentRoom;updateBuildStats(state);
+    return {ok:true,message:mutation+' eingeprägt · −'+preview.price+' Münzen.'};
+}
 function updateBuildStats(state) {
     state.luck = state.chips.filter(chip => hasMutation(chip, "Lucky")).length + (state.bonusLuck||0) + (state.floorBoon?.floor===state.floor?3:0);
     state.capacity = chipCapacity(state);
@@ -338,7 +360,7 @@ const OUTSIDE = [
     { value: "high", label: "HIGH", subtitle: "10 – 18" }
 ];
 function createState(random = Math.random, unlocks = []) {
-    return { phase: "ready", round: 1, score: 0, spinsLeft: RULES.spins, target: 20,
+    return { phase: "ready", slotUpgrades:0, workshopServiced:null, round: 1, score: 0, spinsLeft: RULES.spins, target: 20,
         mapVersion:3, bonusLuck:0, nextTableSpinDebt:0, floorBoon:null, streakGuardUsed:false, lastEvent:null, synergyTrace:[],
         loadoutId:"basic", unlocks:unlocks.filter(id=>ACHIEVEMENTS.some(a=>a.id===id)), normalWon:false, endless:false, endlessRounds:0, roomSpins:0, activeHousePhase:1, floor: 1, map: createFloorMap(1,random), completedFloors: [], eventId:null, coins: 0, mapStep: 0, currentRoom: "entry", visited: ["entry"], cleared: [], shopOffers: [], rerolls: 0,
         totalScore: 0, bestSpin: 0, bossWheel: null, tokens: [], nextTokenId: 0, pendingToken: null,
@@ -364,23 +386,25 @@ function isColorSwitch(previous,result){return previous&&result&&['red','black']
 function calculateBetScore(bet,context={}) {
     const chip = bet.chip;
     let points = bet.type === "number" ? RULES.numberScore : RULES.outsideScore;
+    const step=(name,value,operation='multiply')=>{const before=points;points=operation==='add'?points+value:points*value;if(points!==before)context.trace?.push({name,before,after:points,label:(operation==='add'?'+':'×')+String(value).replace('.',',')});};
+    context.trace?.push({name:'Basiswette',before:0,after:points,label:'+'+points});
     const matches = chip.bonus === "number" ? bet.type === "number"
         : chip.bonus === "parity" ? bet.type === "outside" && ["odd", "even"].includes(bet.value)
         : bet.type === "outside" && chip.bonus === bet.value;
-    if (matches) points *= chip.multiplier;
-    if(chip.special==="zero"&&bet.type==="number"&&bet.value===0)points*=6;
-    if(chip.special==="gambler")points*=bet.type==="number"?3.5:.75;
-    if(chip.special==="outside"&&bet.type==="outside")points*=2;
-    if(chip.special==="royal")points*=2.5;
+    if (matches) step(chip.name,chip.multiplier);
+    if(chip.special==="zero"&&bet.type==="number"&&bet.value===0)step(chip.name,6);
+    if(chip.special==="gambler")step(chip.name,bet.type==="number"?3.5:.75);
+    if(chip.special==="outside"&&bet.type==="outside")step(chip.name,2);
+    if(chip.special==="royal")step(chip.name,2.5);
     const state=context.state;
     if(state&&bet.type==='outside'){
-        if(chip.special==='drifter'&&isColorSwitch(state.history[0],context.result))points+=20;
-        if(chip.special==='collector')points+=4*Math.min(4,Math.max(0,chipCapacity(state)-chipLoad(state)));
-        if(chip.special==='surveyor'&&context.result){const others=new Set((context.bets||state.placedBets).filter(b=>checkWin(b,context.result)).map(betFamily));others.delete(betFamily(bet));points+=10*others.size;}
+        if(chip.special==='drifter'&&isColorSwitch(state.history[0],context.result))step(chip.name,20,'add');
+        if(chip.special==='collector')step(chip.name,4*Math.min(4,Math.max(0,chipCapacity(state)-chipLoad(state))),'add');
+        if(chip.special==='surveyor'&&context.result){const others=new Set((context.bets||state.placedBets).filter(b=>checkWin(b,context.result)).map(betFamily));others.delete(betFamily(bet));step(chip.name,10*others.size,'add');}
     }
-    if(state&&chip.special==='carbon'&&bet.type==='number')points+=100*Math.min(4,Math.max(0,permanentWheel(state).filter(f=>f.number===bet.value).length-1));
-    if (typeof chip.streak === "number") points *= 1 + chip.streak * 0.25;
-    if (hasMutation(chip, "Polished")) points *= 1.5;
+    if(state&&chip.special==='carbon'&&bet.type==='number')step(chip.name,100*Math.min(4,Math.max(0,permanentWheel(state).filter(f=>f.number===bet.value).length-1)),'add');
+    if (typeof chip.streak === "number") step('Streak',1 + chip.streak * 0.25);
+    if (hasMutation(chip, "Polished")) step('Polished',1.5);
     return points;
 }
 function resolveSpin(state, result, random = Math.random) {
@@ -398,10 +422,13 @@ function resolveSpin(state, result, random = Math.random) {
         const echo=won&&chance>0&&random()<chance;
         if(echo&&(precise||active.has('echo')))state.synergyTrace.push((precise?'Präzision':'Resonanz')+' · Zusatzwertung für '+bet.chip.name);
         const curse=curseMultiplier(bet.chip,bet,won,random);cursePenalty+=curse.penalty;
-        const basePoints = won ? calculateBetScore(bet,{state,result})*curse.multiplier : 0;
+        const effects=[];
+        const basePoints = won ? calculateBetScore(bet,{state,result,trace:effects})*curse.multiplier : 0;
+        if(won&&curse.multiplier!==1)effects.push({name:bet.chip.curse.name,before:basePoints/curse.multiplier,after:basePoints,label:'×'+String(curse.multiplier).replace('.',',')});
         const score = basePoints * (echo ? 2 : 1);
         points += score;
-        return { name: chipDisplayName(state, bet.chip), basePoints, points: score, won, echo, curse:bet.chip.curse?.name||null, curseNote:curse.note, mutations: [...bet.chip.mutations] };
+        if(echo)effects.push({name:'Zusatzwertung',before:basePoints,after:score,label:'+'+formatPoints(basePoints)});
+        return { chipId:bet.chip.id,betType:bet.type,betValue:bet.value,effects,name: chipDisplayName(state, bet.chip), basePoints, points: score, won, echo, curse:bet.chip.curse?.name||null, curseNote:curse.note, mutations: [...bet.chip.mutations] };
     });
     const chipScore = points;
     const context = {
@@ -416,6 +443,7 @@ function resolveSpin(state, result, random = Math.random) {
     const relicResult = applyRelics(state.relics, context, points);
     points = relicResult.score;
     state.relicTrace = relicResult.trace;
+    if(active.has('coverage')&&state.relicTrace.some(r=>r.name==='Full Coverage'&&r.triggered)&&context.families.size===3)state.synergyTrace.push('Breites Netz · Full Coverage mit 3 Wettarten');
     const house=currentRoom(state)?.name==="The House",phase=state.activeHousePhase||1;
     const bossPenalty=(currentRoom(state)?.name==="The Taxman"||(house&&phase>=2))?Math.min(points*.25,10*(context.bets-context.winners)):0;
     points-=bossPenalty;
@@ -803,6 +831,7 @@ function decodeRun(text){
   const num=(v)=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
   const int=(v)=>Number.isSafeInteger(v)&&v>=0;
   const s=createState(()=>0);for(const key of Object.keys(s))if(Object.hasOwn(raw,key))s[key]=raw[key];s.eventId=raw.eventId??null;
+  check(int(s.slotUpgrades)&&s.slotUpgrades<=6);check(s.workshopServiced===null||typeof s.workshopServiced==='string'&&s.workshopServiced.length<120);
   check(['ready','won','lost','map','shop','workshop','event','floor-clear','complete','slot'].includes(s.phase));
   check(int(s.floor)&&s.floor>=1&&s.floor<=1000&&int(s.round)&&s.round>=1);
   for(const key of ['score','spinScore','target','coins','totalScore','bestSpin'])check(num(s[key]));
@@ -838,6 +867,11 @@ function decodeRun(text){
   if(s.phase==='slot'){const p=s.pendingToken;check(p&&['ready','won','map','shop'].includes(p.returnPhase)&&TOKEN_POOLS.some(o=>o.type===p.type&&o.name===p.name&&o.rarity===p.rarity));check(RARITIES.includes(p.rolledRarity));if(p.mutations)check(Array.isArray(p.mutations)&&p.mutations.every(m=>MUTATIONS[m]));}else check(s.pendingToken===null);
   check(Array.isArray(s.history)&&s.history.length<=8&&s.history.every(field));
   check(Array.isArray(s.breakdown)&&s.breakdown.length<=512&&s.breakdown.every(b=>typeof b.name==='string'&&num(b.points)&&num(b.basePoints)&&Array.isArray(b.mutations)&&b.mutations.every(m=>MUTATIONS[m])));
+  for(const b of s.breakdown){
+   if(b.chipId!==undefined)check(int(b.chipId));
+   if(b.effects!==undefined)check(Array.isArray(b.effects)&&b.effects.length<=24&&b.effects.every(e=>typeof e.name==='string'&&e.name.length<=100&&typeof e.label==='string'&&e.label.length<=200&&num(e.before)&&num(e.after)));
+   if(b.betType!==undefined)check(b.betType==='number'?int(b.betValue)&&b.betValue<=18:b.betType==='outside'&&OUTSIDE.some(o=>o.value===b.betValue));
+  }
   check(Array.isArray(s.relicTrace)&&s.relicTrace.length<=4&&s.relicTrace.every(t=>RELIC_TYPES[t.name]&&num(t.before)&&num(t.after)));
   if(s.lastSpin!==null)check(field(s.lastSpin.result)&&num(s.lastSpin.finalScore)&&num(s.lastSpin.relicScore)&&num(s.lastSpin.chipScore)&&int(s.lastSpin.bets)&&int(s.lastSpin.winners)&&Array.isArray(s.lastSpin.families));
   if(['ready','won','lost'].includes(s.phase)){check(['table','boss'].includes(room.type)&&s.target===room.target);if(s.phase==='ready')check(s.spinsLeft>0&&s.score<s.target);if(s.phase==='won')check(s.score>=s.target);if(s.phase==='lost')check(s.spinsLeft===0&&s.score<s.target);}
@@ -852,7 +886,7 @@ function decodeRun(text){
 if (typeof module !== "undefined" && module.exports) {
     module.exports = { RULES, CHIP_TYPES, HIGH_ROLLER, ZERO_CHIP, GAMBLER_CHIP, CHIP_CATALOG, MUTATIONS, WHEEL_ITEMS, WHEEL_LIMITS, RELIC_TYPES, betFamily, applyRelics, moveRelic, removeRelic, hasMutation, chipCapacity, updateBuildStats, removeChip, tableRewards, claimReward, skipReward, useWheelItem, createChip, createState, checkWin, calculateBetScore, resolveSpin, startSpin, nextRound, placeBet, returnChip };
     Object.assign(module.exports, { workshopChoices, versionTwoFloorMap, buildTokenPool, previewWheelItem, wheelComposition, legacyFloorMap, ECONOMY, slotPrice, refillPrice, formatPoints, BUILD_EVENTS, resolveBuildEvent, CURSES, chipLoad, buildFits, grantCurse, detectSynergies, activeSynergies, missingGreedy, SAVE_VERSION, encodeRun, decodeRun, mergeProgress, mergeRecords, ACHIEVEMENTS, START_LOADOUTS, normalizeProgress, recordAchievementSpin, contentUnlocked, EVENTS, FLOORS, floorConfig, housePhase, normalizeRecords, updateRecords, continueEndless, createFloorMap, currentMap, canEnterRoom, advanceFloor, FLOOR_MAP, currentRoom, enterRoom, buyOffer, rerollShop, resolveRoom });
-    Object.assign(module.exports, {TOKEN_TYPES,TOKEN_POOLS,TOKEN_ART_WEIGHTS,RARITIES,rarityWeights,rollTokenReward,beginToken,claimToken,discardToken});
+    Object.assign(module.exports, {TOKEN_TYPES,TOKEN_POOLS,TOKEN_ART_WEIGHTS,RARITIES,rarityWeights,rollTokenReward,beginToken,claimToken,discardToken,CHIP_WORK,previewChipWork,applyChipWork,buySlotUpgrade,slotUpgradePrice});
 }
 if (typeof document !== "undefined") initializeGame();
 
@@ -908,6 +942,13 @@ function initializeGame() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const betCells = new Map();
     const key = (type, value) => type + ":" + value;
+    const feel=GameFeel.create({getState:()=>state,render,tone,soundEnabled:()=>soundEnabled,mutations:MUTATIONS,curses:CURSES,work:CHIP_WORK,
+        synergies:()=>activeSynergies(state),room:()=>currentRoom(state),
+        previewWork:(id,m)=>previewChipWork(state,id,m),applyWork:(id,m)=>applyChipWork(state,id,m),
+        chooseChip:(id,placed)=>{if(state.phase!=='ready')return;if(placed)returnChip(state,id);else state.selectedChip=id;render();say(placed?'Chip zurückgenommen.':'Chip gewählt. Jetzt ein Wettfeld antippen.');},
+        advance:()=>{if(nextRound(state)){renderBoard();render();showJourney();}}
+    });
+    $('show-synergies').addEventListener('click',()=>feel.showSynergies());
 
     function say(message) {
         $("status").textContent = message;
@@ -915,7 +956,7 @@ function initializeGame() {
         $("status").classList.toggle("notice", /zuerst|nicht|belegt|geschafft|beendet|angewendet|erhalten|gekauft/i.test(message));
         noticeTimer = setTimeout(() => $("status").classList.remove("notice"), 4200);
     }
-    function tone(frequency) {
+    function tone(frequency,volume=.035,duration=.12) {
         if (!soundEnabled) return;
         try {
             const Audio = window.AudioContext || window.webkitAudioContext;
@@ -927,10 +968,10 @@ function initializeGame() {
             oscillator.connect(gain);
             gain.connect(audioContext.destination);
             oscillator.frequency.value = frequency;
-            gain.gain.setValueAtTime(0.035, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
+            gain.gain.setValueAtTime(volume, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
             oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.13);
+            oscillator.stop(audioContext.currentTime + duration + .01);
         } catch { /* Audio support must never block a spin. */ }
     }
     function makeBet(type, value, label, color, subtitle) {
@@ -956,6 +997,7 @@ function initializeGame() {
             if (state.selectedChip === null) { say("Wähle zuerst einen Chip aus deinem Inventar."); return; }
             const chip = state.chips.find(item => item.id === state.selectedChip);
             if (placeBet(state, chip.id, type, value)) {
+                feel.closeInfo();
                 render();
                 say(chip.name + " gesetzt. Du kannst weitere Chips setzen oder drehen.");
             } else say("The Minimalist: maximal 3 Chips. Nimm zuerst einen gesetzten Chip zurück.");
@@ -1022,6 +1064,7 @@ function initializeGame() {
         button.addEventListener("click", () => {
             if (state.phase !== "ready") return;
             inspectedChip = chip.id;
+            feel.closeInfo();
             if (placed) {
                 returnChip(state, chip.id);
                 render();
@@ -1033,6 +1076,7 @@ function initializeGame() {
             }
             $("chips").querySelector('[data-chip="' + chip.id + '"]')?.focus({ preventScroll: true });
         });
+        feel.bindChip(button,chip,placed);
         return button;
     }
     function renderChips() {
@@ -1090,7 +1134,10 @@ function initializeGame() {
         $("show-scoring").disabled = !state.lastSpin || state.phase === "spinning";
         if ($("relic-dialog").open) renderRelicDetails();
         $("edit-build").disabled = state.phase === "spinning";
-        $("edit-build").textContent = 'Build · '+activeSynergies(state).length+' Synergien';
+        $("edit-build").textContent = 'Build';
+        $('show-synergies').textContent='✦ '+activeSynergies(state).length;
+        $('show-synergies').setAttribute('aria-label',activeSynergies(state).length+' aktive Synergien ansehen');
+        $('show-synergies').disabled=state.phase==='spinning';
         $("edit-build").title = "Effekte und Mutationen ansehen; Chips ohne gesetzte Wetten ablegen";
         $("capacity-label").textContent = chipLoad(state) + " / " + chipCapacity(state);
         $("luck").textContent = state.luck;
@@ -1141,7 +1188,7 @@ function initializeGame() {
         $("result").textContent = "—";
         $("result-detail").textContent = state.wheel.length + " Felder. Dein verändertes Glück.";
     }
-    $("spin").addEventListener("click", () => {
+    $("spin").addEventListener("click", async () => {
         if (state.phase === "slot") { openTokens(); return; }
         if (["map", "shop", "workshop", "event", "floor-clear", "complete"].includes(state.phase)) { showJourney(); return; }
         if (state.phase === "won") {
@@ -1156,6 +1203,7 @@ function initializeGame() {
             return;
         }
         if (!startSpin(state)) return;
+        const scoreBefore=state.score,rotationBefore=rotation;
         const resultIndex = Math.floor(Math.random() * state.wheel.length);
         const result = state.wheel[resultIndex];
         pendingSpinSnapshot=structuredClone(state);resolveSpin(pendingSpinSnapshot,result);
@@ -1164,21 +1212,26 @@ function initializeGame() {
         const angle = (resultIndex + .5) * 360 / state.wheel.length;
         const desired = (360 - angle) % 360;
         rotation += 1080 + (desired - rotation % 360 + 360) % 360;
-        $("wheel").style.transform = "rotate(" + rotation + "deg)";
         $("result").textContent = "…";
         $("result-detail").textContent = "Deine Wetten sind jetzt gesperrt.";
         render(); say("Das Rad dreht. Ein Spin wurde eingesetzt."); tone(440);
-        setTimeout(() => {
+        await feel.spin(rotationBefore,rotation,RULES.spinDuration,state.wheel.length);
+        $('result').textContent=result.number+' · '+({red:'ROT',black:'SCHWARZ',green:'GRÜN'}[result.color]);
+        $('spin').textContent='AUSWERTUNG …';
+        try{await feel.scoring(pendingSpinSnapshot,scoreBefore,resultIndex);}finally{
             state=pendingSpinSnapshot;pendingSpinSnapshot=null;saveRecords();
             $("result").textContent = result.number + " · " + ({ red: "ROT", black: "SCHWARZ", green: "GRÜN" }[result.color]);
             $("result-detail").textContent = result.number === 0 ? (state.lastSpin.zeroMultiplier===1?"Grüner Pakt: kein Null-Abzug.":"Null-Effekt: Gesamter Spin ×0,75.") : "+" + format(state.spinScore) + " Punkte in diesem Spin";
             renderBoard(); render(); tone(state.spinScore > 0 ? 740 : 240);
+            document.querySelector('.bet-cell[data-type="number"][data-value="'+result.number+'"]')?.classList.add('landing-hit');
+            $('wheel').children[resultIndex]?.classList.add('landing-hit');
+            if(['won','lost'].includes(state.phase))feel.roomReceipt();
             if (state.phase === "won") say("Tisch geschafft! +" + currentRoom(state).payout + " Münzen. Weiter zur Map.");
-            else if (state.phase === "lost" && state.endless) showRoom();
+            else if (state.phase === "lost" && state.endless) say('Endless beendet. Dein normaler Sieg bleibt erhalten.');
             else if (state.phase === "lost") say("Run beendet. " + format(state.target - state.score) + " Punkte fehlten zum Ziel. Starte einen neuen Versuch.");
             else say(state.spinScore ? "Treffer! Wetten beibehalten oder deinen Build anpassen." : "Kein Treffer. Du hast noch " + state.spinsLeft + " Spins.");
         if(newUnlocks.length)say("Freigeschaltet: "+newUnlocks.map(a=>a.reward).join(", ")+" · Ab jetzt im Slot-Pool!");
-        }, reducedMotion.matches ? 100 : RULES.spinDuration);
+        }
     });
     $("clear").addEventListener("click", () => {
         if (state.phase !== "ready") return;
@@ -1319,6 +1372,7 @@ function initializeGame() {
             const definition = relic ? RELIC_TYPES[relic.name] : null;
             const button = document.createElement("button");
             button.className = "relic-slot " + (definition?.className || "empty-relic");
+            if(relic)button.dataset.relic=relic.id;
             if (relic && state.relicTrace.some(entry => entry.id === relic.id && entry.triggered)) button.classList.add("relic-triggered");
             const symbol = document.createElement("strong"); symbol.textContent = definition?.symbol || "+";
             const label = document.createElement("span"); label.textContent = relic?.name || "";
@@ -1431,7 +1485,7 @@ function initializeGame() {
         return '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (paths[kind] || paths.relic) + '</svg>';
     }
     function roomInfo(room) {
-        return room.target ? room.target + ' Punkte · ' + room.spins + ' Spins\n+' + room.payout + ' Münzen' + (room.type === 'boss' ? '\n'+bossRule(room) : '') : { shop: 'Drei gemischte Zufalls-Spins und ein Werkzeug. Kaufen startet den Slot sofort. Nachfüllen ab '+refillPrice(state)+' Münzen.', workshop: 'Kostenlos: '+workshopChoices({...state,currentRoom:room.id}).join(' oder ')+'. Ein freier Item-Platz nötig.', event: 'Ein Handel mit Folgen. Build verändern, Risiko nehmen oder weiterziehen.' }[room.type];
+        return room.target ? room.target + ' Punkte · ' + room.spins + ' Spins\n'+(state.visited.includes(room.id)?'+'+room.payout+' Münzen':'Raumprämie nach dem Sieg') + (room.type === 'boss' ? '\n'+bossRule(room) : '') : { shop: 'Drei gemischte Zufalls-Spins, ein Werkzeug und eine Platzmarke. Nachfüllen ab '+refillPrice(state)+' Münzen.', workshop: 'Kostenlos: '+workshopChoices({...state,currentRoom:room.id}).join(' oder ')+'. Chip-Prägung optional gegen Münzen.', event: 'Ein Handel mit Folgen. Was dich erwartet, erfährst du im Raum.' }[room.type];
     }
     function inspectMapRoom(room) {
         selectedMapRoom = room.id;
@@ -1455,6 +1509,7 @@ function initializeGame() {
         $('map-dialog').classList.toggle('boss-next', state.phase === 'map' && state.mapStep === currentMap(state).length - 2);
         document.querySelector('#map-dialog .eyebrow').textContent='FLOOR '+state.floor+' · '+floorConfig(state.floor).name.toUpperCase();
         $('floor-map').replaceChildren();$('floor-map').classList.toggle('extended-map',currentMap(state).length>6);
+        $('floor-map').style.setProperty('--route-rows',currentMap(state).length);
         $('map-title').textContent='DER WEG ZUM HAUS';
         const points = currentMap(state).map((rooms, row) => rooms.map((room, index) => ({ room, x: rooms.length === 1 ? 300 : 120 + index * 180, y: 425 - row * (360/(currentMap(state).length-1)) })));
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 600 480'); svg.setAttribute('preserveAspectRatio', 'none'); svg.classList.add('route-lines'); svg.setAttribute('aria-hidden','true');
@@ -1472,6 +1527,7 @@ function initializeGame() {
             button.className = 'route-node ' + room.type + (room.id===state.currentRoom?' current':'') + (available ? ' reachable' : '') + (state.visited.includes(room.id) ? ' visited' : '');
             button.dataset.room = room.id; button.style.left = x/6+'%'; button.style.top = y/4.8+'%';
             button.innerHTML = gameIcon(room.id.endsWith('stakes') ? 'stakes' : room.type);
+            if(room.type!=='boss'){const label=document.createElement('span');label.className='route-type-label';label.textContent=room.id.endsWith('stakes')?'RISIKO':({table:'TISCH',shop:'SHOP',workshop:'WERKBANK',event:'EREIGNIS'}[room.type]);button.append(label);}
             if (room.type === 'boss') { const label = document.createElement('span'); label.className = 'boss-node-label'; label.textContent = 'FLOOR-BOSS'; button.append(label); }
             button.setAttribute('aria-label', room.name + '. ' + roomInfo(room));
             button.setAttribute('aria-describedby','map-room-detail');
@@ -1484,6 +1540,8 @@ function initializeGame() {
         inspectMapRoom(initial);
         $('map-feedback').textContent = '';
         if (!$('map-dialog').open) $('map-dialog').showModal();
+        const routeScroll=document.querySelector('.route-scroll'),current=$('floor-map').querySelector('[aria-current="step"]');
+        if(current)routeScroll.scrollTop=Math.max(0,current.offsetTop-routeScroll.clientHeight*.72);
     }
     $('enter-map-room').addEventListener('click',()=>{
         if (!enterRoom(state,selectedMapRoom)) return;
@@ -1501,7 +1559,9 @@ function initializeGame() {
         let target=null;const full=offer.type==='item'&&state.items.length>=2;
         const purchase=journeyButton(offer.sold?'VERKAUFT ✓':(offer.type==='slot'?'KAUFEN & DREHEN':'KAUFEN')+' · '+offer.price+' ◉',()=>{
             const result=buyOffer(state,index,target);render();
-            if(result.ok&&state.phase==='slot'){openTokens();spinSlot(true);}
+            if(result.ok)purchase.disabled=true;
+            if(result.ok)feel.sold(index);
+            if(result.ok&&state.phase==='slot'){$('room-dialog').querySelectorAll('button').forEach(b=>b.disabled=true);setTimeout(()=>{openTokens();spinSlot(true);},reducedMotion.matches?0:180);}
             else{renderShop();$('room-feedback').textContent=result.message;}
         },offer.sold||state.coins<offer.price||full||(offer.type==='token'&&state.tokens.length>=3));
         purchase.id='purchase-offer';purchase.classList.add('purchase-button');
@@ -1523,14 +1583,15 @@ function initializeGame() {
         state.shopOffers.forEach((offer,index)=>{
             const token=TOKEN_TYPES[offer.name]||{type:offer.type==='slot'?null:'item',symbol:offer.type==='slot'?'?':'⚒'};
             const card=journeyButton('',()=>{selectShopOffer(index);if(matchMedia('(max-width:700px)').matches)$('shop-inspector').scrollIntoView({block:'start',behavior:'instant'});});card.className='goods-card '+(token.type||'item')+(offer.sold?' sold':'')+(!offer.sold&&state.coins<offer.price?' unaffordable':'');card.dataset.offer=index;
-            const category=document.createElement('small');category.textContent=offer.type==='slot'?'ZUFALLS-SPIN':offer.type==='item'?'WERKZEUG':'ALTER TOKEN';
+            const category=document.createElement('small');category.textContent=offer.type==='slot'?'ZUFALL · COMMON–LEGENDARY':offer.type==='item'?WHEEL_ITEMS[offer.name].rarity+' · WERKZEUG':'ALTER TOKEN';
             const art=document.createElement('span');art.className='goods-art';art.innerHTML=gameIcon(offer.type==='item'?offer.name:token.type||'table');
             const symbol=document.createElement('b');symbol.textContent=token.symbol;art.append(symbol);
             const name=document.createElement('strong');name.textContent=offer.name;
             const price=document.createElement('span');price.className='price-tag';price.textContent=offer.sold?'VERKAUFT':offer.price+' ◉';
             const tip=document.createElement('span');tip.className='goods-tooltip';tip.id='offer-tip-'+index;tip.textContent=rewardDescription(offer);tip.setAttribute('role','tooltip');
             card.setAttribute('aria-label',offer.name+', '+offer.price+' Münzen'+(offer.sold?', verkauft':''));card.setAttribute('aria-describedby',tip.id);
-            card.append(category,art,name,price,tip);shelf.append(card);
+            const effect=document.createElement('span');effect.className='goods-effect';effect.textContent=offer.type==='slot'?'Zufälliger Chip, Relic oder Rad-Item':rewardDescription(offer);
+            card.append(category,art,name,effect,price,tip);shelf.append(card);
         });
         const pane=document.createElement('aside');pane.id='shop-inspector';pane.className='shop-inspector';
         pane.innerHTML='<span class="shop-cursor">↖</span><h3>Karte wählen</h3>';
@@ -1540,6 +1601,9 @@ function initializeGame() {
         footer.append(wallet,journeyButton('↻ NACHFÜLLEN · '+refillPrice(state)+' ◉',()=>{if(rerollShop(state)){shopChoice=null;render();renderShop();$('room-feedback').textContent='Angebote nachgefüllt.';}},state.coins<refillPrice(state)),journeyButton('ZUR MAP →',()=>{resolveRoom(state,'leave');$('room-dialog').close();render();selectedMapRoom=null;showJourney();}));
         if(state.tokens.length)footer.insertBefore(journeyButton('✦ '+state.tokens.length+' ALTE TOKENS',openTokens),footer.children[1]);
         $("room-actions").append(layout,footer);
+        const capacity=document.createElement('div');capacity.className='capacity-offer';
+        const slotText=document.createElement('span');slotText.textContent='⊕ SLOT-CHIP / PLATZMARKE · Common · +1 Chip-Platz für diesen Run';
+        const slotBuy=journeyButton((state.slotUpgrades>=6?'AUSVERKAUFT':slotUpgradePrice(state)+' ◉ · KAUFEN'),()=>{const result=buySlotUpgrade(state);render();renderShop();$('room-feedback').textContent=result.message;if(result.ok){feel.punch($('capacity-label'),true);tone(660);}},state.slotUpgrades>=6||state.coins<slotUpgradePrice(state));slotBuy.id='buy-slot-upgrade';capacity.append(slotText,slotBuy);$('room-actions').append(capacity);
         if(shopChoice===null||state.shopOffers[shopChoice]?.sold)shopChoice=state.shopOffers.findIndex(o=>!o.sold);if(shopChoice>=0&&state.shopOffers[shopChoice])selectShopOffer(shopChoice);
     }
 
@@ -1575,7 +1639,8 @@ function initializeGame() {
             renderShop();
         } else if (state.phase === "workshop") {
             $('room-dialog').classList.add('workshop-scene');
-            $('room-description').textContent='Ein Werkzeug aufs Haus. Danach direkt am Rad arbeiten oder für später behalten.';
+            $('room-description').textContent='Ein Werkzeug aufs Haus. Optional: einen Chip prägen lassen. Ein Auftrag pro Werkstatt.';
+            const benchButton=journeyButton('CHIP-WERKBANK · Vorschau & Prägung →',()=>feel.openBench());benchButton.id='open-chip-workbench';$('room-actions').append(benchButton);
             const sign=document.createElement('div');sign.className='workshop-room-wheel';wheelPrint(sign,state.wheel);$('room-actions').append(sign);
             workshopChoices(state).forEach(name => add(name + " — " + WHEEL_ITEMS[name].description, () => finish(name), state.items.length >= 2));
             add("Ohne Werkzeug weiter →", () => finish("leave"));
