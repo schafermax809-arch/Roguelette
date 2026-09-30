@@ -74,3 +74,7 @@ Validierung: Modelltests; WebKit/Chromium mit zehn aufeinanderfolgenden Spins, k
 - Keine Balance-, Preis-, Drop- oder Routenänderung. Bestehende Saves mit Run-Fortschritt starten keine Einführung. Onboarding nutzt den separaten, fehlertoleranten Browser-Schlüssel roguelette-onboarding-v1.
 
 Neue Tests: onboarding.test.cjs, onboarding-browser.cjs und onboarding-concepts-browser.cjs. WebKit/Chromium prüfen frischen Start, Touch/Desktop, Vorschau, Überspringen, Reload, Map/Shop, einmalige Konzepte und Reset; die bestehenden Safari-Viewport- und vollständigen Run-Tests bleiben erhalten.
+
+## V1.6.1 – Ruhiger Tisch
+
+Automatische Wettvorschauen und Entdeckungskarten über dem Rad im normalen Spiel entfernt. Vorschau weiterhin in der Chip-Info; kurze Erst-Run-Einführung und Raumhinweise bleiben. Spin-Zeile auf SPIN ↗ verkürzt; Plus-Punkte bleiben auch bei großen Zahlen einzeilig. Auf WebKit in 1180×600, 1366×768 und 390×844 geprüft.

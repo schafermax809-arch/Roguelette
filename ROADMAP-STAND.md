@@ -911,3 +911,7 @@ Kontinuierliche Roulette-Kurve statt linearer Geschwindigkeitsstufen, eine Landu
 ## V1.6 – First-Time User Experience
 
 Kurze überspringbare Einführung im ersten echten Run, gespeicherte einmalige Konzeptkarten, zustandsgetreue Wettvorschau, sichtbares Tischziel/Restpunkte/Spins und gegliedertes Tischbuch umgesetzt. Kein neues Gameplay und keine Balanceänderung. Weiter offen: echte Erstspieler beobachten (insbesondere Punktespannen großer Builds) und physisches iPad Safari testen.
+
+## V1.6.1 – Ruhiger Tisch
+
+Automatische Wettvorschauen und Entdeckungskarten über dem Rad im normalen Spiel entfernt. Vorschau weiterhin in der Chip-Info; kurze Erst-Run-Einführung und Raumhinweise bleiben. Spin-Zeile auf SPIN ↗ verkürzt; Plus-Punkte bleiben auch bei großen Zahlen einzeilig. Auf WebKit in 1180×600, 1366×768 und 390×844 geprüft.

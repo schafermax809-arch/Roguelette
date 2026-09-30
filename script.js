@@ -1150,7 +1150,9 @@ function initializeGame() {
         renderChips();
         renderRelics();
         $("show-scoring").disabled = !state.lastSpin || state.phase === "spinning";
-        $('show-scoring').textContent=state.lastSpin ? state.lastSpin.winners+' / '+state.lastSpin.bets+' WETTEN GETROFFEN ↗' : 'AUSWERTUNG ↗';
+        $('show-scoring').textContent='SPIN ↗';
+        $('show-scoring').setAttribute('aria-label',state.lastSpin ? state.lastSpin.winners+' von '+state.lastSpin.bets+' Wetten getroffen. Auswertung öffnen.' : 'Spin-Auswertung');
+        $('show-scoring').title=$('show-scoring').getAttribute('aria-label');
         if ($("relic-dialog").open) renderRelicDetails();
         $("edit-build").disabled = state.phase === "spinning";
         $("edit-build").textContent = 'Build';
@@ -1174,6 +1176,7 @@ function initializeGame() {
             const dot = document.createElement("i"); dot.className = i >= state.spinsLeft ? "used" : ""; return dot;
         }));
         $("spin-score").textContent = "+" + format(state.spinScore);
+        $("spin-score").style.setProperty("--score-digits",$("spin-score").textContent.length);
         $("bet-count").textContent = state.placedBets.length + " / " + (bossActive && currentRoom(state).name==="The Minimalist" ? Math.min(3,state.chips.length) : state.chips.length) + " gesetzt";
         $("clear").disabled = state.phase !== "ready" || state.placedBets.length === 0;
         $("spin").disabled = state.phase === "spinning" || (state.phase === "ready" && (!state.placedBets.length || missingGreedy(state).length>0));

@@ -69,7 +69,7 @@
    let eligible=[];
    if(dialog?.id==='map-dialog')eligible=['map'];
    else if(dialog?.id==='room-dialog')eligible=[s.phase==='complete'?'endless':s.phase,...(s.phase==='shop'?discoveries:[])];
-   else if(!dialog&&s.phase==='ready')eligible=[...(api.room().type==='boss'?['boss']:[]),...discoveries];
+   // Table stays clear: discoveries are explained in rooms and the handbook.
    if(!concept||!eligible.includes(concept))concept=eligible.find(k=>concepts[k]&&!data.seen.includes(k));
    if(concept){
     if(!data.seen.includes(concept)){data.seen.push(concept);save();}
@@ -77,9 +77,7 @@
     if(dialog){const heading=dialog.querySelector('h2');if(heading)heading.after(card);else dialog.prepend(card);card.classList.add('lesson-inline');card.style.cssText='';}else{document.body.append(card);card.classList.remove('lesson-inline');}
     card.hidden=false;position();return;
    }
-   if(!dialog&&s.phase==='ready'&&!previewClosed&&(candidate||s.placedBets.length)){
-    document.body.append(card);card.classList.remove('lesson-inline');card.dataset.mode='preview';title.textContent='DEINE WETTE';body.textContent='Punkte bei Treffer, keine garantierte Auszahlung.';dismiss.textContent='SCHLIESSEN';addPreview(s);card.hidden=false;position();return;
-   }hide();
+   hide();
   }
   dismiss.onclick=()=>{if(card.dataset.mode==='intro')data.status='skipped';else if(concept){concept=null;}else previewClosed=true;candidate=null;save();hide();};
   const schedule=()=>{if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;update();});};
