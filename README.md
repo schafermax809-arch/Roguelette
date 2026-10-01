@@ -82,3 +82,9 @@ Automatische Wettvorschauen und Entdeckungskarten über dem Rad im normalen Spie
 ## V2.0 – Content & Gameplay-Tiefe
 
 Alle Inhalte, Freischaltungen, Tests und Grenzen: [CONTENT-V2.md](CONTENT-V2.md). Zusätzlich auszuliefern: `depth.js`, `depth-ui.js`, `depth.css`.
+
+### UI-Polish V2.0.2
+- Einheitliche Buttons, Dialograhmen, Auswahlzustände und zurückhaltendere Schatten.
+- Gerade Shopkarten, klarere Detailflächen und ruhigere Map-Markierungen.
+- Die aktive Tischregel färbt nun auch UI-Akzente; normale Tische setzen die Farben zurück.
+- `polish.css` bündelt den visuellen Feinschliff, ohne die vorhandene Viewport-Geometrie zu ersetzen.
