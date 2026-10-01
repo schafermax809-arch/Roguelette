@@ -1,3 +1,7 @@
+# V2.2 – Händler und Aufdeckung
+
+Drei feste Sofort-Tokens (Rad, Chip, Relic) und ein zufälliges Werkzeug. Die Kosten bleiben 8/8/10 plus Floor-Aufpreis. Neue Karten, kompakte Kaufleiste und hervorgehobener Fund bei der Aufdeckung. Voller Token-Beutel blockiert keinen Kauf; volle Zielinventare behalten die Ersatzwahl. Bestehende gespeicherte Angebote bleiben kompatibel. Der folgende 2.1-Stand ist historisch; seine Messwerte gelten für die damalige Shopverteilung.
+
 # Aktueller Stand: V2.1 – Build-Kontrolle und Klarheit
 
 01.10.2026. Der aktuelle vollständige Stand mit allen elf Arbeitsbereichen, 17 Abschlussfragen, Messungen und Testgrenzen steht in [CONTROL-UPDATE.md](CONTROL-UPDATE.md). 33 Chips, 26 Relics, 7 Mutationen, 10 Rad-Werkzeuge; 159 Modelltests. Nächster sinnvoller Schritt: menschliche Balance-/Pacing-Tests und echte iPad-Safari-Prüfung.

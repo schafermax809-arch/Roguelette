@@ -714,11 +714,8 @@ function advanceFloor(state,random=Math.random){
     return enterRoom(state,entry.id,random,true);
 }
 function rollShop(state,random=Math.random){
- state.shopOffers=['A','B'].map(letter=>({type:'slot',name:'Slot '+letter,price:slotPrice(state),sold:false}));
- const prep=state.currentRoom.endsWith('final-shop'),boss=floorConfig(state.floor).boss;
- const token=prep?({'Double Zero':'Rad Token','The Taxman':'Rad Token','The Minimalist':'Chip Token','The House':'Relic Token'}[boss]||'Relic Token'):['Chip Token','Relic Token','Rad Token'][weightedIndex([1,1,1],random)];
- state.shopOffers.push({type:'token',name:token,price:TOKEN_TYPES[token].price+Math.min(3,state.floor-1),sold:false});
- const pool=Object.keys(WHEEL_ITEMS),name=prep?({'Double Zero':'Rewrite','The Taxman':'Clone','The Minimalist':'Duplicate','The House':'Boost'}[boss]||'Clone'):pool[weightedIndex(pool.map(n=>WHEEL_ITEMS[n].rarity==='Epic'?1:WHEEL_ITEMS[n].rarity==='Rare'?2:4),random)];
+ state.shopOffers=['Rad Token','Chip Token','Relic Token'].map(name=>({type:'token',name,price:TOKEN_TYPES[name].price+Math.min(3,state.floor-1),sold:false}));
+ const pool=Object.keys(WHEEL_ITEMS),name=pool[weightedIndex(pool.map(n=>WHEEL_ITEMS[n].rarity==='Epic'?1:WHEEL_ITEMS[n].rarity==='Rare'?2:4),random)];
  state.shopOffers.push({type:'item',name,price:slotPrice(state)+(WHEEL_ITEMS[name].rarity==='Epic'?5:WHEEL_ITEMS[name].rarity==='Rare'?3:1),sold:false});
 }
 function enterRoom(state, id, random = Math.random, floorEntry = false) {
@@ -747,19 +744,12 @@ function buyOffer(state, index, targetId = null, random = Math.random) {
     const offer = state.shopOffers[index];
     if (state.phase !== "shop" || !offer || offer.sold) return { ok: false, message: "Dieses Angebot ist nicht verfügbar." };
     if (state.coins < offer.price) return { ok: false, message: "Nicht genügend Run-Münzen." };
-    if(offer.type==='slot'){
-        const outcome=rollTokenReward(state,'Slot Token',random);if(!outcome)return {ok:false,message:'Kein Upgrade verfügbar.'};
+    if(offer.type==='slot'||offer.type==='token'){
+        const outcome=rollTokenReward(state,offer.type==='slot'?'Slot Token':offer.name,random);if(!outcome)return {ok:false,message:'Kein Upgrade verfügbar.'};
         state.coins-=offer.price;offer.sold=true;state.pendingToken={...outcome,returnPhase:'shop'};state.phase='slot';state.selectedChip=null;
         return {ok:true,message:offer.name+' dreht.',outcome:state.pendingToken};
     }
     if (offer.type === "mutation") return {ok:false,message:"Mutationen entstehen nur zufällig auf neuen Chips."};
-    if (offer.type === "token") {
-        if(!TOKEN_TYPES[offer.name])return {ok:false,message:"Unbekannter Token."};
-        if (state.tokens.length >= 3) return { ok: false, message: "Deine drei Token-Plätze sind belegt." };
-        state.tokens.push({ id: state.nextTokenId++, name: offer.name });
-        state.coins -= offer.price; offer.sold = true;
-        return { ok: true, message: offer.name + " gekauft." };
-    }
     // Validate the complete purchase on a draft: no payment or partial changes on failure.
     const draft = structuredClone(state);
     Object.assign(draft, { phase: "won", rewardPending: true, rewards: [offer] });
@@ -1602,13 +1592,14 @@ function initializeGame() {
             Clone: '<rect x="7" y="19" width="21" height="29" rx="3"/><rect x="37" y="19" width="21" height="29" rx="3"/><path d="M14 9h33l-5-5m5 5-5 5M16 28v11m28-6h7"/>',
             Mitosis: '<circle cx="32" cy="13" r="8"/><circle cx="14" cy="47" r="10"/><circle cx="50" cy="47" r="10"/><path d="M32 21v7L14 37m18-9 18 9"/>',
             mutation: '<path d="m32 6 7 18 19 8-19 7-7 19-8-19-18-7 18-8Z"/><circle cx="32" cy="32" r="5"/>',
+            item: '<circle cx="32" cy="32" r="24"/><circle cx="32" cy="32" r="9"/><path d="M32 8v15m0 18v15M8 32h15m18 0h15M15 15l11 11m12 12 11 11M15 49l11-11m12-12 11-11"/>',
             relic: '<path d="m32 5 21 12v27L32 59 11 44V17Z"/><circle cx="32" cy="31" r="12"/>',
             chip: '<circle cx="32" cy="32" r="25"/><circle cx="32" cy="32" r="18"/><path d="M29 23h6v18h-6M23 32h18"/>'
         };
         return '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (paths[kind] || paths.relic) + '</svg>';
     }
     function roomInfo(room) {
-        return room.target ? room.target + ' Punkte · ' + room.spins + ' Spins\n'+(state.visited.includes(room.id)?'+'+room.payout+' Münzen':'Raumprämie nach dem Sieg') + (room.type === 'boss' ? '\n'+bossRule(room) : '')+(room.rule?'\n'+Depth.rules[room.rule].name+': '+Depth.rules[room.rule].description:'')+(room.tokenReward?'\nBonus: Rad Token, wenn ein Token-Platz frei ist.':'') : { shop: 'Zwei gemischte Slots, ein gezielter Token, ein Werkzeug und eine Platzmarke. Nachfüllen ab '+refillPrice(state)+' Münzen.', workshop: 'Kostenlos: '+workshopChoices({...state,currentRoom:room.id}).join(' oder ')+'. Chip-Prägung optional gegen Münzen.', event: 'Ein Handel mit Folgen. Was dich erwartet, erfährst du im Raum.' }[room.type];
+        return room.target ? room.target + ' Punkte · ' + room.spins + ' Spins\n'+(state.visited.includes(room.id)?'+'+room.payout+' Münzen':'Raumprämie nach dem Sieg') + (room.type === 'boss' ? '\n'+bossRule(room) : '')+(room.rule?'\n'+Depth.rules[room.rule].name+': '+Depth.rules[room.rule].description:'')+(room.tokenReward?'\nBonus: Rad Token, wenn ein Token-Platz frei ist.':'') : { shop: 'Rad-, Chip- und Relic-Token öffnen beim Kauf. Dazu ein zufälliges Werkzeug und eine Platzmarke. Nachfüllen ab '+refillPrice(state)+' Münzen.', workshop: 'Kostenlos: '+workshopChoices({...state,currentRoom:room.id}).join(' oder ')+'. Chip-Prägung optional gegen Münzen.', event: 'Ein Handel mit Folgen. Was dich erwartet, erfährst du im Raum.' }[room.type];
     }
     function inspectMapRoom(room) {
         selectedMapRoom = room.id;
@@ -1680,19 +1671,19 @@ function initializeGame() {
         const description=document.createElement('p');description.textContent=offer.type==='slot'?'Ein Kauf. Ein sofortiger Zufalls-Spin.':rewardDescription(offer);
         const feedback=document.createElement('p');feedback.className='purchase-warning';
         let target=null;const full=offer.type==='item'&&state.items.length>=2;
-        const purchase=journeyButton(offer.sold?'VERKAUFT ✓':(offer.type==='slot'?'KAUFEN & DREHEN':'KAUFEN')+' · '+offer.price+' ◉',()=>{
+        const purchase=journeyButton(offer.sold?'VERKAUFT ✓':(['slot','token'].includes(offer.type)?'KAUFEN & ÖFFNEN':'KAUFEN')+' · '+offer.price+' ◉',()=>{
             const result=buyOffer(state,index,target);render();
             if(result.ok)purchase.disabled=true;
             if(result.ok)feel.sold(index);
             if(result.ok&&state.phase==='slot'){$('room-dialog').querySelectorAll('button').forEach(b=>b.disabled=true);openTokens();spinSlot(true);}
             else{renderShop();$('room-feedback').textContent=result.message;}
-        },offer.sold||state.coins<offer.price||full||(offer.type==='token'&&state.tokens.length>=3));
+        },offer.sold||state.coins<offer.price||full);
         purchase.id='purchase-offer';purchase.classList.add('purchase-button');
         if(state.coins<offer.price)feedback.textContent='Es fehlen '+(offer.price-state.coins)+' Münzen.';
         if(full){feedback.textContent='Inventar voll · Werkzeug zum Ersetzen wählen.';const targets=document.createElement('div');targets.className='purchase-targets';state.items.forEach(item=>targets.append(journeyButton(item.name,()=>{target=item.id;purchase.disabled=offer.sold||state.coins<offer.price;feedback.textContent=item.name+' wird ersetzt.';})));pane.append(targets);}
         pane.prepend(heading,description);
         if(offer.type==='slot'){const odds=document.createElement('div');odds.className='shop-pool';odds.innerHTML='<span>● <b>55 %</b><small>CHIP</small></span><span>♛ <b>25 %</b><small>RELIC</small></span><span>⚒ <b>20 %</b><small>RAD</small>';pane.append(odds);}
-        if(offer.type==='slot'||offer.type==='token'){const info=tokenInfo(state,offer.type==='slot'?'Slot Token':offer.name),details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Seltenheit & Plätze · Luck '+info.luck;details.append(summary);const odds=document.createElement('p');odds.textContent=RARITIES.map((r,i)=>r+' '+formatRate(info.weights[i])+' %').join(' · ')+' · Luck verändert nur Seltenheit. Leere Seltenheit: nächster niedrigerer, sonst höherer Pool.';const space=document.createElement('p');space.textContent=offer.type==='token'?'Token-Plätze frei: '+info.pouch+'/3 · Zielplätze frei: '+info.free+'. Bei vollem Zielinventar ausdrücklich ersetzen oder verwerfen.':'Freie Zielplätze: Chips '+(chipCapacity(state)-chipLoad(state))+', Relics '+(4-state.relics.length)+', Werkzeuge '+(2-state.items.length)+'. Bei voller Art ersetzen oder verwerfen.';details.append(odds,space);pane.append(details);}
+        if(offer.type==='slot'||offer.type==='token'){const info=tokenInfo(state,offer.type==='slot'?'Slot Token':offer.name),details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Seltenheit & Plätze · Luck '+info.luck;details.append(summary);const odds=document.createElement('p');odds.textContent=RARITIES.map((r,i)=>r+' '+formatRate(info.weights[i])+' %').join(' · ')+' · Luck verändert nur Seltenheit. Leere Seltenheit: nächster niedrigerer, sonst höherer Pool.';const space=document.createElement('p');space.textContent=offer.type==='token'?'Öffnet sofort · Zielplätze frei: '+info.free+'. Bei vollem Inventar ausdrücklich ersetzen oder verwerfen.':'Freie Zielplätze: Chips '+(chipCapacity(state)-chipLoad(state))+', Relics '+(4-state.relics.length)+', Werkzeuge '+(2-state.items.length)+'. Bei voller Art ersetzen oder verwerfen.';details.append(odds,space);pane.append(details);}
         const budget=document.createElement('p');budget.className='shop-budget';budget.textContent=offer.sold?'Bereits gekauft':state.coins>=offer.price?'Danach '+(state.coins-offer.price)+' ◉':'Es fehlen '+(offer.price-state.coins)+' ◉';pane.append(budget,feedback,purchase);
     }
     function renderShop() {
@@ -1706,15 +1697,15 @@ function initializeGame() {
         const shelf=document.createElement('div');shelf.className='shop-stock';shelf.id='shop-stock';
         state.shopOffers.forEach((offer,index)=>{
             const token=TOKEN_TYPES[offer.name]||{type:offer.type==='slot'?null:'item',symbol:offer.type==='slot'?'?':'⚒'};
-            const card=journeyButton('',()=>{selectShopOffer(index);if(matchMedia('(max-width:700px)').matches)$('shop-inspector').scrollIntoView({block:'start',behavior:'instant'});});card.className='goods-card '+(token.type||'item')+(offer.sold?' sold':'')+(!offer.sold&&state.coins<offer.price?' unaffordable':'');card.dataset.offer=index;
+            const card=journeyButton('',()=>{selectShopOffer(index);if(matchMedia('(max-width:700px)').matches)$('shop-inspector').scrollIntoView({block:'start',behavior:'instant'});});card.className='goods-card '+(token.type||'item')+(offer.sold?' sold':'')+(!offer.sold&&state.coins<offer.price?' unaffordable':'');card.dataset.offer=index;card.dataset.kind=offer.type==='token'?token.type:'tool';
             const category=document.createElement('small');category.textContent=offer.type==='slot'?'ZUFALL · COMMON–LEGENDARY':offer.type==='item'?WHEEL_ITEMS[offer.name].rarity+' · WERKZEUG':'GARANTIERT · '+({chip:'CHIP',relic:'RELIC',item:'RAD'}[token.type]||'ZUFALL');
             const art=document.createElement('span');art.className='goods-art';art.innerHTML=gameIcon(offer.type==='item'?offer.name:token.type||'table');
             const symbol=document.createElement('b');symbol.textContent=token.symbol;art.append(symbol);
-            const name=document.createElement('strong');name.textContent=offer.name;
+            const name=document.createElement('strong');name.textContent=offer.type==='token'?({chip:'CHIP',relic:'RELIC',item:'RAD'}[token.type]+' TOKEN'):offer.name;
             const price=document.createElement('span');price.className='price-tag';price.textContent=offer.sold?'VERKAUFT':offer.price+' ◉';
             const tip=document.createElement('span');tip.className='goods-tooltip';tip.id='offer-tip-'+index;tip.textContent=rewardDescription(offer);tip.setAttribute('role','tooltip');
             card.setAttribute('aria-label',offer.name+', '+offer.price+' Münzen'+(offer.sold?', verkauft':''));card.setAttribute('aria-describedby',tip.id);
-            const effect=document.createElement('span');effect.className='goods-effect';effect.textContent=offer.type==='slot'?'Zufälliger Chip, Relic oder Rad-Werkzeug':rewardDescription(offer);
+            const effect=document.createElement('span');effect.className='goods-effect';effect.textContent=offer.type==='token'?'KAUFEN → AUFDECKEN':offer.type==='slot'?'Zufälliger Chip, Relic oder Rad-Werkzeug':rewardDescription(offer);
             card.append(category,art,name,effect,price,tip);shelf.append(card);
         });
         const pane=document.createElement('aside');pane.id='shop-inspector';pane.className='shop-inspector';
@@ -1841,7 +1832,7 @@ function initializeGame() {
                 const label=document.createElement('strong');label.textContent=token.name;
                 button.append(coin,label);button.title='Einlegen – erst der Hebel verbraucht den Token.';return button;
             }));
-            if(!state.tokens.length)$('token-inventory').textContent='Keine Tokens · Garantierte Tokens findest du in Shops und Events';
+            if(!state.tokens.length)$('token-inventory').textContent='Keine Tokens · Belohnungen und Events können dir Tokens geben';
             prepareSlot(state.tokens.some(token=>token.id===selectedTokenId)?selectedTokenId:null);
         }
     }
@@ -1852,13 +1843,13 @@ function initializeGame() {
         selectedTokenId=null;tokenAnimating=true;render();
         $('close-tokens').disabled=true;$('slot-lever').disabled=true;
         $('slot-machine').classList.add('spinning');delete $('slot-machine').dataset.rarity;
-        $('slot-status').textContent='DEIN GLÜCK WIRD GEDRUCKT';$('token-inventory').hidden=true;$('token-result').replaceChildren();
+        $('slot-status').textContent='PRÄGUNG LÄUFT';$('token-inventory').hidden=true;$('token-result').replaceChildren();
         $('token-feedback').textContent='';
         const final=finalReelValues(state.pendingToken);
         const strips=[
-            ['chip','relic','item'].map(type=>({label:typeNames[type],icon:type})),
+            [state.pendingToken.type].map(type=>({label:typeNames[type],icon:type})),
             RARITIES.map((label,index)=>({label,symbol:['◆','◆◆','★','✦','♛'][index]})),
-            TOKEN_POOLS.filter(offer=>contentUnlocked(state,offer)).map(offer=>({label:offer.name,icon:offer.type==='item'?offer.name:offer.type}))
+            TOKEN_POOLS.filter(offer=>offer.type===state.pendingToken.type&&contentUnlocked(state,offer)).map(offer=>({label:offer.name,icon:offer.type==='item'?offer.name:offer.type}))
         ];
         try {
             await Promise.all(reelIds.map(async(id,index)=>{
@@ -1884,7 +1875,7 @@ function initializeGame() {
     function revealToken() {
         const pending=state.pendingToken;if(!pending)return;
         staticReels(finalReelValues(pending));$('slot-lever').disabled=true;
-        $('slot-status').textContent='UPGRADE BEREIT';
+        $('slot-status').textContent=pending.name.toUpperCase()+' · '+pending.rarity.toUpperCase();
         $('slot-machine').dataset.rarity=pending.rarity.toLowerCase();
         $('token-feedback').textContent=pending.fallback?pending.rolledRarity+' → '+pending.rarity+' · Gewürfelter Pool leer.':'';
     }

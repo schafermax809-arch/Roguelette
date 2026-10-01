@@ -1,3 +1,5 @@
+> Historischer Bericht für 2.1. Seit 2.2 hat der Shop drei garantierte Sofort-Tokens und ein zufälliges Werkzeug. Die folgenden 700 Simulationsruns beziehen sich auf die frühere Shopverteilung und sind keine Messung von 2.2.
+
 # Roguelette 2.1 – Build-Kontrolle und Klarheit
 
 Stand: 01.10.2026. Fokussierter Ausbau der vorhandenen 33 Chips, 26 Relics, 7 Mutationen und 10 Rad-Werkzeuge. Keine zusätzliche Währung, keine höheren Bosswerte und keine permanenten Startboni.

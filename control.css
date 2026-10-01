@@ -4,3 +4,41 @@
 #shop-inspector details{font-size:11px;line-height:1.5;margin-top:10px}#shop-inspector summary{cursor:pointer;min-height:32px}.workbench-inspector{max-height:65dvh;overflow:auto}
 @media(max-width:700px){.workbench-inspector{max-height:none}.context-preview{max-height:35dvh}}
 .context-preview{pointer-events:none}.context-preview>button{pointer-events:auto}
+/* 2.2 — dealer's token rack and tabletop reveal press. */
+#room-dialog.shop-scene{background:radial-gradient(ellipse at 40% 20%,#345e48,#183c30 75%);border:3px solid #bcaa77;border-radius:14px;padding:20px 24px}
+#room-dialog.shop-scene #room-title{font-size:clamp(22px,3vw,34px);letter-spacing:3px;margin:4px 0 12px}
+.shop-scene .shop-layout,.touch-device .shop-scene .shop-layout{grid-template-columns:minmax(0,1fr);gap:14px}
+.shop-scene .shop-stock,.touch-device .shop-scene .shop-stock{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;padding:18px 10px 25px;min-height:0;border:1px dashed #a9b58b70;border-radius:10px;background:#102d242e}
+.shop-scene .goods-card,.touch-device .shop-scene .goods-card{--ink:#345b4b;--rim:#86b19d;position:relative;height:230px;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:8px;padding:14px 10px 18px;background:#e9ddbb;border:3px solid var(--rim);border-radius:12px;box-shadow:0 6px #10281f, inset 0 0 0 3px #f8efcf;transform:rotate(-1deg);color:#213e31;transition:transform .16s,box-shadow .16s}
+.shop-scene .goods-card[data-kind=chip]{--ink:#803d35;--rim:#b97462;transform:rotate(1deg)}
+.shop-scene .goods-card[data-kind=relic]{--ink:#805d25;--rim:#c4a05b}
+.shop-scene .goods-card[data-kind=tool]{--ink:#344e64;--rim:#7996a1;transform:rotate(1deg);background:#cfddce}
+.shop-scene .goods-card[aria-pressed=true]{transform:translateY(-7px);box-shadow:0 9px #10281f,0 0 0 2px #efce80,inset 0 0 0 3px #f8efcf}
+.shop-scene .goods-card:not(.sold):hover{transform:translateY(-5px) rotate(0)}
+.shop-scene .goods-card .goods-art,.touch-device .shop-scene .goods-card .goods-art{position:relative;flex-shrink:0;width:96px;height:96px;aspect-ratio:1;color:var(--ink);border:7px double var(--ink);border-radius:50%;background:repeating-conic-gradient(from 10deg,var(--rim) 0deg 12deg,#f1e7c9 12deg 30deg);box-shadow:0 5px var(--ink),0 8px 8px #18382a30;display:grid;place-items:center}
+.shop-scene .goods-art svg{width:64%;height:64%;padding:5px;border-radius:50%;background:#eee2bd}.shop-scene .goods-art>b{display:none}
+.shop-scene .goods-card>small{font-size:9px;letter-spacing:1px;color:var(--ink)}
+.shop-scene .goods-card>strong,.touch-device .shop-scene .goods-card>strong{font-size:16px;letter-spacing:1px;line-height:1.2}
+.shop-scene .goods-effect{font-size:9px;line-height:1.35;max-height:3.9em;overflow:hidden}
+.shop-scene .goods-card .price-tag{position:absolute;bottom:-13px;right:12px;transform:rotate(-3deg);font-size:15px;padding:7px 15px;background:#dcb965;border:2px solid #8c713c;box-shadow:2px 3px #173b2c;color:#233e2c}
+.shop-scene .goods-card.sold{opacity:.55;filter:saturate(.4)}
+.shop-scene .shop-inspector,.touch-device .shop-scene .shop-inspector{position:static;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 20px;padding:13px 16px;border:1px solid #96a584;border-left:4px solid #d9b666;background:#142f26;box-shadow:none;align-items:center;min-width:0}
+.shop-scene .shop-inspector h3{font-size:17px;margin:0;border:0;padding:0}.shop-scene .shop-inspector>p{font-size:11px;margin:0;line-height:1.5;grid-column:1}.shop-scene .shop-inspector details{grid-column:1;margin:0}.shop-scene .shop-inspector .purchase-button{grid-column:2;grid-row:1/5;width:auto;min-width:205px;min-height:52px}.shop-scene .shop-inspector .purchase-targets{grid-column:1/-1}.shop-scene .shop-budget{display:none}.shop-scene .purchase-warning:empty{display:none}
+.shop-scene .shop-controls,.touch-device .shop-scene .shop-controls{position:static;margin-top:14px;padding:8px 0;background:transparent;gap:12px}.shop-scene .capacity-offer{margin-top:8px;padding:10px 12px;font-size:11px}.shop-scene #room-description{max-height:90px;overflow:auto;font-size:11px;line-height:1.5}
+#token-dialog{width:min(800px,95vw);background:radial-gradient(ellipse at top,#38614a,#18392e);border:3px solid #bba577;border-radius:14px;padding:20px}
+#token-dialog .slot-cabinet{--reel-height:150px;padding:15px;background:#153429;border:1px solid #77977a;border-radius:10px;box-shadow:inset 0 0 0 5px #264936}
+#token-dialog .slot-marquee{padding:7px 12px 14px;color:#ecd48f;margin:0;min-height:38px}#token-dialog .slot-marquee strong{font-size:14px;letter-spacing:2px}
+#token-dialog .slot-mechanism{gap:14px}#token-dialog .slot-reels{grid-template-columns:.75fr .9fr 1.4fr;gap:14px;padding:8px}
+#token-dialog .slot-reel{transform:none;border:3px solid #a18d5b;border-radius:7px;background:#cfbd8b;padding:8px 5px;box-shadow:0 5px #0c251c}
+#token-dialog .slot-reel:last-child{border-color:#dec17a;background:#e7d6a7;transform:rotate(1deg)}
+#token-dialog .reel-window{background:#f0e5c4;border:1px solid #968252;border-radius:4px}
+#token-dialog .reel-window::after{display:block;background:linear-gradient(#423e2524,transparent 25%,transparent 75%,#423e2524);box-shadow:inset 0 0 8px #564e2826}
+#token-dialog .reel-symbol{width:70px;height:70px;border:4px double currentColor;background:#f6eccd;box-shadow:0 3px #826c3b50}
+#token-dialog .reel-tile>b{font-size:14px}#token-dialog .slot-reel>span{font-size:9px;letter-spacing:1px}
+#slot-machine[data-rarity=rare]{--reveal:#85bdc5}#slot-machine[data-rarity=epic]{--reveal:#c6a1d0}#slot-machine[data-rarity=legendary]{--reveal:#f1cb66}#slot-machine[data-rarity=common],#slot-machine[data-rarity=uncommon]{--reveal:#c3b77a}
+#slot-machine[data-rarity] .slot-reel:last-child{border-color:var(--reveal);animation:fund-stamp .28s ease-out}
+@keyframes fund-stamp{from{transform:translateY(-7px) rotate(-3deg)}to{transform:rotate(1deg)}}
+@media(min-width:701px) and (max-height:700px){.shop-scene .goods-card,.touch-device .shop-scene .goods-card{height:188px;padding:10px 8px 14px;gap:5px}.shop-scene .goods-card .goods-art,.touch-device .shop-scene .goods-card .goods-art{width:70px;height:70px}.shop-scene .shop-stock,.touch-device .shop-scene .shop-stock{padding-top:12px;padding-bottom:22px}#token-dialog .slot-cabinet{--reel-height:115px}#token-dialog .reel-symbol{width:53px;height:53px}}
+@media(max-width:700px){#room-dialog.shop-scene{padding:14px}.shop-scene .shop-stock,.touch-device .shop-scene .shop-stock{grid-template-columns:repeat(2,minmax(0,1fr));gap:25px 12px;padding:14px 7px 23px}.shop-scene .goods-card,.touch-device .shop-scene .goods-card{height:181px;padding:10px 7px 15px;gap:5px}.shop-scene .goods-card .goods-art,.touch-device .shop-scene .goods-card .goods-art{width:66px;height:66px}.shop-scene .goods-card>strong,.touch-device .shop-scene .goods-card>strong{font-size:12px}.shop-scene .goods-card>small{font-size:8px;letter-spacing:0}.shop-scene .shop-inspector,.touch-device .shop-scene .shop-inspector{grid-template-columns:1fr;padding:12px}.shop-scene .shop-inspector .purchase-button{grid-column:1;grid-row:auto;width:100%;min-width:0}.shop-scene .shop-inspector details{grid-column:1}#token-dialog{padding:12px}#token-dialog .slot-cabinet{--reel-height:112px;padding:7px}#token-dialog .slot-reels{gap:7px;padding:4px;grid-template-columns:.75fr .85fr 1.25fr}#token-dialog .reel-symbol{width:44px;height:44px;padding:4px}#token-dialog .reel-tile>b{font-size:10px}#token-dialog .slot-reel>span{font-size:7px;letter-spacing:0}#token-dialog .slot-marquee strong{font-size:10px;letter-spacing:1px}}
+@media(prefers-reduced-motion:reduce){#slot-machine[data-rarity] .slot-reel:last-child{animation:none}.shop-scene .goods-card{transition:none}}
+.shop-scene .goods-art:has(b) svg{opacity:1;width:68%;height:68%}
