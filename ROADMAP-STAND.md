@@ -1,3 +1,7 @@
+# V2.3 – Direkte Wege und Fundkammer
+
+Platzmarke aus dem Shop entfernt; bestehende Inventarerweiterungen bleiben save-kompatibel. Verfügbare Map-Symbole führen mit einem Klick/Tippen direkt in den Raum. Vorschau per Hover/Fokus, keine zweite Bestätigung. Neue große Fundkarte mit Kategorie-/Seltenheitssiegeln, gestaffelten Stopps und Fundstempel; Reduced Motion ohne diese Bewegung. Shop-Karten und Kaufmodell aus 2.2 bleiben bestehen. 159 Modelltests bestanden; neue Map- und Shop-Browserprüfung auf Desktop, kurzem iPad und Telefon in WebKit und Chromium.
+
 # V2.2 – Händler und Aufdeckung
 
 Drei feste Sofort-Tokens (Rad, Chip, Relic) und ein zufälliges Werkzeug. Die Kosten bleiben 8/8/10 plus Floor-Aufpreis. Neue Karten, kompakte Kaufleiste und hervorgehobener Fund bei der Aufdeckung. Voller Token-Beutel blockiert keinen Kauf; volle Zielinventare behalten die Ersatzwahl. Bestehende gespeicherte Angebote bleiben kompatibel. Der folgende 2.1-Stand ist historisch; seine Messwerte gelten für die damalige Shopverteilung.

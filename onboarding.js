@@ -3,8 +3,8 @@
  'use strict';
  const KEY='roguelette-onboarding-v1';
  const concepts={
-  map:['DEIN WEG','Du bist am markierten Raum. Wähle ein verbundenes Symbol, prüfe den Raum und tippe auf BETRETEN. Andere Wege sind gesperrt.'],
-  shop:['MÜNZEN → DEIN BUILD','Gemischte Slots drehen sofort; garantierte Chip-, Relic- und Rad-Tokens kommen in deine Token-Tasche. Chips belegen Chip-Plätze; eine Platzmarke erhöht die Kapazität sofort.'],
+  map:['DEIN WEG','Du bist am markierten Raum. Tippe auf ein verbundenes Symbol, um den Raum direkt zu betreten. Hover oder Tastaturfokus zeigt die Vorschau. Andere Wege sind gesperrt.'],
+  shop:['MÜNZEN → DEIN BUILD','Rad-, Chip- und Relic-Tokens öffnen sofort beim Kauf. Das vierte Angebot ist ein Rad-Werkzeug. Bei vollem Inventar wählst du ausdrücklich einen Ersatz.'],
   workshop:['WERKSTATT','Nimm ein kostenloses Rad-Werkzeug oder öffne die Chip-Werkbank: Chip wählen → Prägung und Vorher/Nachher prüfen → bezahlen.'],
   relic:['RELIC ENTDECKT','Relics wirken auf deinen Run, ohne Chip-Plätze zu belegen. Sie werden von links nach rechts ausgewertet. Antippen zeigt die Bedingung.'],
   mutation:['MUTATION','Ein Chip mit ✦ hat einen zusätzlichen Effekt. Tippe ihn an (Desktop: Shift-Klick), um die Mutation zu prüfen.'],

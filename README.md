@@ -1,4 +1,4 @@
-# Roguelette — V2.2 · Der Händler
+# Roguelette — V2.3 · Die Fundkammer
 
 Ein Roulette-Roguelike auf einem gezeichneten Pokertisch. Starte mit einem Basic-Chip, baue dein Rad und deinen Build um und fordere The House heraus.
 
@@ -17,7 +17,7 @@ Ein Roulette-Roguelike auf einem gezeichneten Pokertisch. Starte mit einem Basic
 - Sequentielle Chip-/Relic-/Synergie-Auswertung, mechanischer Punktezähler und Roulette-Landung
 - Touch-Chip-Inspektion mit ausdrücklicher Auswahl/Rücknahme; am Desktop Hover und Shift-Klick
 - Raum-Abrechnung als Ticket, aktive Synergien über ✦ und gestempelte Shop-Angebote
-- Slot-Chip/Platzmarke: sofort +1 Inventarplatz; optionale Chip-Prägung in Werkstätten mit Vorher/Nachher-Vorschau
+- Optionale Chip-Prägung in Werkstätten mit Vorher/Nachher-Vorschau; Expanded erweitert Chip-Plätze
 
 Spielstände bleiben lokal im Browser und gelten für dieselbe Spieladresse. Browserdaten löschen entfernt sie. Keine Cloud-Synchronisierung. Alte Saves werden weiter geladen; neue Floors nutzen die längere Route.
 
@@ -52,7 +52,11 @@ Die iPad-Prüfung erfolgt per Touch-/Viewport-Emulation in WebKit und Chromium. 
 
 Die neuen Feel-Tests prüfen Chip-Inspektion, Auswahl/Rücknahme, Auswertung, Raumticket, Map, Shop-Kauf, Platzmarken und Werkstatt inklusive Reload auf Desktop, Telefon und kurzen Tablet-Viewports in beiden Engines. `feel-edge-browser.cjs` prüft Nullpunkte, 18.900 Punkte sowie Reload während der visuellen Auswertung. `feel.js` konsumiert ausschließlich die bereits berechneten Effekte; Animationen würfeln nichts und vergeben keine Punkte. Reduced Motion überspringt Rad- und Zählerbewegungen. Spielstände aus V1.4 bleiben gültig; neue optionale Save-Felder erhalten Standardwerte.
 
-## Update 2.2 – Händler und Aufdeckung
+## Update 2.3 – Direkte Wege und Fundkammer
+
+Keine Platzmarke mehr im Shop. Erreichbare Map-Symbole betreten den Raum direkt; Hover und Fokus zeigen weiterhin Details. Neue Fundkammer mit großem Fund, kleinen Kategorie-/Seltenheitssiegeln, gestaffeltem Stopp und Fundstempel. Reduced Motion bleibt ruhig, Ergebnisse bleiben vor der Animation gespeichert. Bereits gekaufte zusätzliche Plätze bleiben erhalten. Aktuelle Ablaufprüfungen: `node tests/map23-browser.cjs` und `node tests/shop22-browser.cjs`.
+
+## Update 2.2 – Händler und Aufdeckung (historisch)
 
 Drei feste Angebote: Rad Token, Chip Token, Relic Token. Jeder Kauf öffnet sofort die garantierte Kategorie; der vierte Platz enthält ein zufälliges sichtbares Werkzeug. Kein Beutelplatz erforderlich, volle Zielinventare verlangen weiterhin ausdrückliches Ersetzen. Farbige Token-Medaillons, eine kompakte Kaufleiste und die neu gestaltete Aufdeckung ersetzen den bisherigen Shop. Alte gespeicherte Shop-Angebote bleiben bis zum Nachfüllen erhalten. Browserprüfung: `node tests/shop22-browser.cjs`.
 

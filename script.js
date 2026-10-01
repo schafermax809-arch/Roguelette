@@ -1599,7 +1599,7 @@ function initializeGame() {
         return '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (paths[kind] || paths.relic) + '</svg>';
     }
     function roomInfo(room) {
-        return room.target ? room.target + ' Punkte · ' + room.spins + ' Spins\n'+(state.visited.includes(room.id)?'+'+room.payout+' Münzen':'Raumprämie nach dem Sieg') + (room.type === 'boss' ? '\n'+bossRule(room) : '')+(room.rule?'\n'+Depth.rules[room.rule].name+': '+Depth.rules[room.rule].description:'')+(room.tokenReward?'\nBonus: Rad Token, wenn ein Token-Platz frei ist.':'') : { shop: 'Rad-, Chip- und Relic-Token öffnen beim Kauf. Dazu ein zufälliges Werkzeug und eine Platzmarke. Nachfüllen ab '+refillPrice(state)+' Münzen.', workshop: 'Kostenlos: '+workshopChoices({...state,currentRoom:room.id}).join(' oder ')+'. Chip-Prägung optional gegen Münzen.', event: 'Ein Handel mit Folgen. Was dich erwartet, erfährst du im Raum.' }[room.type];
+        return room.target ? room.target + ' Punkte · ' + room.spins + ' Spins\n'+(state.visited.includes(room.id)?'+'+room.payout+' Münzen':'Raumprämie nach dem Sieg') + (room.type === 'boss' ? '\n'+bossRule(room) : '')+(room.rule?'\n'+Depth.rules[room.rule].name+': '+Depth.rules[room.rule].description:'')+(room.tokenReward?'\nBonus: Rad Token, wenn ein Token-Platz frei ist.':'') : { shop: 'Rad-, Chip- und Relic-Token öffnen beim Kauf. Dazu ein zufälliges Werkzeug. Nachfüllen ab '+refillPrice(state)+' Münzen.', workshop: 'Kostenlos: '+workshopChoices({...state,currentRoom:room.id}).join(' oder ')+'. Chip-Prägung optional gegen Münzen.', event: 'Ein Handel mit Folgen. Was dich erwartet, erfährst du im Raum.' }[room.type];
     }
     function inspectMapRoom(room) {
         selectedMapRoom = room.id;
@@ -1610,7 +1610,7 @@ function initializeGame() {
         $('map-room-name').classList.toggle('boss-preview-title', room.type === 'boss');
         if (room.type === 'boss') $('map-room-name').textContent = '♛ FLOOR-BOSS: ' + room.name;
         $('map-room-detail').textContent = roomInfo(room);
-        $('map-room-state').textContent = state.cleared.includes(room.id) ? '✓ Abgeschlossen' : room.id === state.currentRoom ? '● Dein aktueller Raum' : available ? 'Bereit für deinen nächsten Zug' : row <= state.mapStep ? 'Dieser Weg wurde nicht gewählt' : row === state.mapStep+1 ? 'Keine Verbindung von deinem Raum' : 'Noch nicht erreichbar';
+        $('map-room-state').textContent = state.cleared.includes(room.id) ? '✓ Abgeschlossen' : room.id === state.currentRoom ? '● Dein aktueller Raum' : available ? 'Antippen → direkt betreten' : row <= state.mapStep ? 'Dieser Weg wurde nicht gewählt' : row === state.mapStep+1 ? 'Keine Verbindung von deinem Raum' : 'Noch nicht erreichbar';
         $('enter-map-room').disabled = !available;
         $('enter-map-room').textContent = available ? (room.type === 'boss' ? 'BOSS HERAUSFORDERN →' : 'BETRETEN →') : 'GESPERRT';
         $('floor-map').querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.room === room.id)));
@@ -1637,7 +1637,7 @@ function initializeGame() {
         points.flat().forEach(({room,x,y}) => {
             const row = currentMap(state).findIndex(rooms => rooms.includes(room));
             const available = canEnterRoom(state,room.id);
-            const button = journeyButton('', () => inspectMapRoom(room));
+            const button = journeyButton('', () => {if(canEnterRoom(state,room.id))takeMapPath(room.id);else inspectMapRoom(room);});
             button.className = 'route-node ' + room.type + (room.id===state.currentRoom?' current':'') + (available ? ' reachable' : '') + (state.visited.includes(room.id) ? ' visited' : '');
             button.dataset.room = room.id; button.style.left = x/6+'%'; button.style.top = y/4.8+'%';
             button.innerHTML = gameIcon(room.id.endsWith('stakes') ? 'stakes' : room.type);
@@ -1657,12 +1657,13 @@ function initializeGame() {
         const routeScroll=document.querySelector('.route-scroll'),current=$('floor-map').querySelector('[aria-current="step"]');
         if(current)routeScroll.scrollTop=Math.max(0,current.offsetTop-routeScroll.clientHeight*.72);
     }
-    $('enter-map-room').addEventListener('click',()=>{
-        if (!enterRoom(state,selectedMapRoom)) return;
+    function takeMapPath(id){
+        if (!enterRoom(state,id)) return;
         $('map-dialog').close(); shopChoice=null; renderBoard(); resetResult(); render();
         if (state.phase !== 'ready') showRoom();
         else say(currentRoom(state).name + ' · ' + roomInfo(currentRoom(state)).replaceAll('\n',' · '));
-    });
+    }
+    $('enter-map-room').hidden=true;
     function selectShopOffer(index){
         shopChoice=index;const offer=state.shopOffers[index];
         $('shop-stock').querySelectorAll('button').forEach((button,i)=>button.setAttribute('aria-pressed',String(i===index)));
@@ -1716,9 +1717,6 @@ function initializeGame() {
         footer.append(wallet,journeyButton('↻ NACHFÜLLEN · '+refillPrice(state)+' ◉',()=>{if(rerollShop(state)){shopChoice=null;render();renderShop();$('room-feedback').textContent='Angebote nachgefüllt.';}},state.coins<refillPrice(state)),journeyButton('ZUR MAP →',()=>{resolveRoom(state,'leave');$('room-dialog').close();render();selectedMapRoom=null;showJourney();}));
         if(state.tokens.length)footer.insertBefore(journeyButton('✦ '+state.tokens.length+' TOKENS',openTokens),footer.children[1]);
         $("room-actions").append(layout,footer);
-        const capacity=document.createElement('div');capacity.className='capacity-offer';
-        const slotText=document.createElement('span');slotText.textContent='⊕ PLATZMARKE · Common · +1 Chip-Platz für diesen Run';
-        const slotBuy=journeyButton((state.slotUpgrades>=6?'AUSVERKAUFT':slotUpgradePrice(state)+' ◉ · KAUFEN'),()=>{const result=buySlotUpgrade(state);render();renderShop();$('room-feedback').textContent=result.message;if(result.ok){feel.punch($('capacity-label'),true);tone(660);}},state.slotUpgrades>=6||state.coins<slotUpgradePrice(state));slotBuy.id='buy-slot-upgrade';capacity.append(slotText,slotBuy);$('room-actions').append(capacity);
         if(shopChoice===null||state.shopOffers[shopChoice]?.sold)shopChoice=state.shopOffers.findIndex(o=>!o.sold);if(shopChoice>=0&&state.shopOffers[shopChoice])selectShopOffer(shopChoice);
     }
 
@@ -1814,7 +1812,7 @@ function initializeGame() {
         $('token-inventory').querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.tokenId)===selectedTokenId)));
         const type=token?TOKEN_TYPES[token.name].type:null;
         staticReels([{label:type?typeNames[type]:'ART',icon:type||'table'},{label:'SELTENHEIT',symbol:'★'},{label:'UPGRADE',symbol:'?'}]);
-        delete $('slot-machine').dataset.rarity;
+        delete $('slot-machine').dataset.rarity;$('slot-machine').classList.remove('revealed');
     }
     function openTokens() {
         if(tokenAnimating)return;
@@ -1842,7 +1840,7 @@ function initializeGame() {
         if(!state.pendingToken)return;
         selectedTokenId=null;tokenAnimating=true;render();
         $('close-tokens').disabled=true;$('slot-lever').disabled=true;
-        $('slot-machine').classList.add('spinning');delete $('slot-machine').dataset.rarity;
+        $('slot-machine').classList.remove('revealed');$('slot-machine').classList.add('spinning');delete $('slot-machine').dataset.rarity;
         $('slot-status').textContent='PRÄGUNG LÄUFT';$('token-inventory').hidden=true;$('token-result').replaceChildren();
         $('token-feedback').textContent='';
         const final=finalReelValues(state.pendingToken);
@@ -1861,10 +1859,10 @@ function initializeGame() {
                     strip.replaceChildren(...values.map(reelTile));
                     const height=strip.parentElement.clientHeight;
                     strip.querySelectorAll('.reel-tile').forEach(tile=>tile.style.height=height+'px');
-                    const animation=strip.animate([{transform:'translateY(0)'},{transform:'translateY(-'+count*height+'px)'}],{duration:650+index*250,easing:'cubic-bezier(.12,.68,.12,1)',fill:'forwards'});
+                    const animation=strip.animate([{transform:'translateY(0)'},{transform:'translateY(-'+count*height+'px)'}],{duration:550+index*350,easing:'cubic-bezier(.12,.68,.12,1)',fill:'forwards'});
                     await animation.finished;animation.cancel();
                 }
-                strip.replaceChildren(reelTile(final[index]));strip.style.transform='';column.classList.remove('rolling');tone(420+index*170);
+                strip.replaceChildren(reelTile(final[index]));strip.style.transform='';column.classList.remove('rolling');if(!reducedMotion.matches)column.animate([{transform:'translateY(-7px)'},{transform:'translateY(3px)'},{transform:'translateY(0)'}],{duration:180});tone(420+index*170);
             }));
         } finally {
             tokenAnimating=false;$('close-tokens').disabled=false;$('slot-machine').classList.remove('spinning');
@@ -1876,7 +1874,7 @@ function initializeGame() {
         const pending=state.pendingToken;if(!pending)return;
         staticReels(finalReelValues(pending));$('slot-lever').disabled=true;
         $('slot-status').textContent=pending.name.toUpperCase()+' · '+pending.rarity.toUpperCase();
-        $('slot-machine').dataset.rarity=pending.rarity.toLowerCase();
+        $('slot-machine').dataset.rarity=pending.rarity.toLowerCase();$('slot-machine').classList.add('revealed');
         $('token-feedback').textContent=pending.fallback?pending.rolledRarity+' → '+pending.rarity+' · Gewürfelter Pool leer.':'';
     }
 

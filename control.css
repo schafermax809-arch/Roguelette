@@ -42,3 +42,34 @@
 @media(max-width:700px){#room-dialog.shop-scene{padding:14px}.shop-scene .shop-stock,.touch-device .shop-scene .shop-stock{grid-template-columns:repeat(2,minmax(0,1fr));gap:25px 12px;padding:14px 7px 23px}.shop-scene .goods-card,.touch-device .shop-scene .goods-card{height:181px;padding:10px 7px 15px;gap:5px}.shop-scene .goods-card .goods-art,.touch-device .shop-scene .goods-card .goods-art{width:66px;height:66px}.shop-scene .goods-card>strong,.touch-device .shop-scene .goods-card>strong{font-size:12px}.shop-scene .goods-card>small{font-size:8px;letter-spacing:0}.shop-scene .shop-inspector,.touch-device .shop-scene .shop-inspector{grid-template-columns:1fr;padding:12px}.shop-scene .shop-inspector .purchase-button{grid-column:1;grid-row:auto;width:100%;min-width:0}.shop-scene .shop-inspector details{grid-column:1}#token-dialog{padding:12px}#token-dialog .slot-cabinet{--reel-height:112px;padding:7px}#token-dialog .slot-reels{gap:7px;padding:4px;grid-template-columns:.75fr .85fr 1.25fr}#token-dialog .reel-symbol{width:44px;height:44px;padding:4px}#token-dialog .reel-tile>b{font-size:10px}#token-dialog .slot-reel>span{font-size:7px;letter-spacing:0}#token-dialog .slot-marquee strong{font-size:10px;letter-spacing:1px}}
 @media(prefers-reduced-motion:reduce){#slot-machine[data-rarity] .slot-reel:last-child{animation:none}.shop-scene .goods-card{transition:none}}
 .shop-scene .goods-art:has(b) svg{opacity:1;width:68%;height:68%}
+/* 2.3 — the find takes center stage, with two small classification seals. */
+#token-dialog{width:min(770px,95vw);background:radial-gradient(ellipse at 70% 35%,#3e654c,#193b30 70%);isolation:isolate}
+#token-title{font-size:clamp(18px,3vw,26px);letter-spacing:3px}
+#token-dialog .slot-cabinet{position:relative;padding:13px 18px 18px;overflow:hidden;background:linear-gradient(135deg,#102d23,#284d39);border:2px solid #8c986d;box-shadow:inset 0 0 0 5px #1b3829,0 5px #10261e}
+#token-dialog .slot-cabinet::before{content:'';position:absolute;width:380px;height:380px;right:-25px;top:-25px;border-radius:50%;background:repeating-conic-gradient(from 10deg,#d7c67b12 0deg 12deg,transparent 12deg 30deg);pointer-events:none}
+#token-dialog .slot-marquee{position:relative;border-bottom:1px dashed #b8b07966;margin-bottom:12px;padding:6px 0 12px}
+#token-dialog .slot-reels{position:relative;display:grid;grid-template-columns:130px minmax(0,1fr);grid-template-rows:1fr 1fr;gap:12px 28px;border:0;background:none;align-items:stretch;padding:6px 12px}
+#token-dialog .slot-reel{--reel-height:82px;grid-column:1;padding:7px 5px;background:#cfbd8b;transform:rotate(-3deg);box-shadow:3px 4px #0d261c;border:2px solid #a59262;gap:4px}
+#token-dialog .slot-reel:nth-child(2){transform:rotate(2deg)}
+#token-dialog .slot-reel:last-child{--reel-height:210px;grid-column:2;grid-row:1/3;background:#f1dfac;padding:12px 10px;border:5px double #b49a61;transform:rotate(2deg);box-shadow:5px 9px #0c291e}
+#token-dialog .slot-reel:not(:last-child) .reel-symbol{width:36px;height:36px;padding:4px;border-width:2px;box-shadow:none}
+#token-dialog .slot-reel:not(:last-child) .reel-tile{gap:2px;padding:4px}
+#token-dialog .slot-reel:not(:last-child) .reel-tile>b{font-size:10px;min-height:20px}
+#token-dialog .slot-reel:last-child .reel-symbol{width:114px;height:114px;font-size:63px;border:6px double currentColor;padding:14px;box-shadow:0 6px #91734455;background:#f6e8bf}
+#token-dialog .slot-reel:last-child .reel-tile>b{font-size:24px;letter-spacing:1px;min-height:44px}
+#token-dialog .slot-reel:last-child>span{font-size:11px;letter-spacing:3px;padding-bottom:3px}
+#token-dialog .reel-window{border:0;background:#eddfb8}
+#token-dialog .slot-reel:last-child .reel-window{background:radial-gradient(ellipse,#fff2cd,#e0c88e)}
+#token-dialog .slot-mechanism:has(.slot-lever[hidden]){grid-template-columns:1fr}
+#token-dialog .token-result-actions{margin-top:12px;gap:10px}#token-dialog #token-result>p{max-width:550px;margin:15px auto 8px}
+#token-dialog .spinning .slot-reel:last-child{border-color:#eed086}
+#token-dialog .spinning .slot-cabinet::before{animation:press-orbit 5s linear infinite}
+#token-dialog .revealed .slot-reel:last-child{border-color:var(--reveal,#c3b77a);animation:fund-arrival .46s cubic-bezier(.16,.9,.2,1.2)}
+#token-dialog .revealed .slot-reel:last-child::after{content:'GEFUNDEN';position:absolute;right:-13px;top:14px;transform:rotate(13deg);padding:5px 9px;background:#984d3d;color:#f9e8b9;border:2px solid #f3d69b;font-size:9px;letter-spacing:2px;box-shadow:2px 3px #233c28}
+@keyframes press-orbit{to{transform:rotate(360deg)}}
+@keyframes fund-arrival{0%{transform:translateY(-15px) rotate(-7deg);filter:brightness(1.25)}65%{transform:translateY(3px) rotate(4deg)}100%{transform:rotate(2deg)}}
+@media(min-width:701px) and (max-height:700px){#token-dialog{padding:14px}#token-dialog .slot-reel{--reel-height:63px}#token-dialog .slot-reel:last-child{--reel-height:168px}#token-dialog .slot-reel:last-child .reel-symbol{width:88px;height:88px;font-size:47px}#token-dialog .slot-reel:last-child .reel-tile>b{font-size:19px}#token-dialog .slot-cabinet{padding:8px 14px 12px}}
+@media(max-width:700px){#token-dialog .slot-cabinet{padding:8px 8px 12px}#token-dialog .slot-reels{grid-template-columns:78px minmax(0,1fr);gap:10px 14px;padding:5px}#token-dialog .slot-reel{--reel-height:67px;padding:5px 3px}#token-dialog .slot-reel:last-child{--reel-height:181px;padding:8px 5px;border-width:4px}#token-dialog .slot-reel:last-child .reel-symbol{width:84px;height:84px;padding:9px;font-size:46px}#token-dialog .slot-reel:last-child .reel-tile>b{font-size:16px;min-height:38px}#token-dialog .slot-reel:last-child>span{font-size:8px;letter-spacing:1px}#token-dialog .slot-reel:not(:last-child) .reel-symbol{width:29px;height:29px}#token-dialog .slot-reel:not(:last-child) .reel-tile>b{font-size:8px}#token-dialog .revealed .slot-reel:last-child::after{font-size:7px;right:-7px;top:10px;padding:4px 6px;letter-spacing:1px}}
+@media(prefers-reduced-motion:reduce){#token-dialog .revealed .slot-reel:last-child,#token-dialog .spinning .slot-cabinet::before{animation:none}}
+#token-dialog .slot-reel:not(:last-child) .reel-symbol{font-size:18px;white-space:nowrap}
+@media(max-width:700px){#token-dialog .slot-reel:not(:last-child) .reel-symbol{font-size:14px}}
