@@ -82,7 +82,10 @@
   }
   async function scoring(resolved,from,index){
    closeInfo();locked=true;document.body.classList.add('is-scoring');highlight(resolved.lastSpin.result,index);
-   const events=scoringEvents(resolved).filter(e=>e.kind!=='landing');
+   const all=scoringEvents(resolved).filter(e=>e.kind!=='landing');
+   const groups=new Map();for(const event of all){if(event.kind==='bet')continue;const key=event.kind+':'+event.name;if(groups.has(key)){const prior=groups.get(key);prior.count=(prior.count||1)+1;}else groups.set(key,{...event});}
+   let events=[...groups.values()].map(e=>({...e,label:(e.count?e.count+'× · ':'')+e.label}));
+   const total=events.find(e=>e.kind==='total');events=events.filter(e=>e.kind!=='total').slice(0,6);if(total)events.push(total);
    ticker.textContent='Ergebnis: '+resolved.lastSpin.result.number;
    try{
     if(!motion.matches){
@@ -119,17 +122,16 @@
    // A single pointer impact at the real stop; the wheel itself remains still.
    punch($('.wheel-pointer'));api.tone(260,.022,.055);
   }
-  function rarity(chip){return chip.rarity||({Basic:'Common',Crimson:'Uncommon',Onyx:'Uncommon',Balance:'Uncommon',Sniper:'Rare',Streak:'Epic','High Roller':'Rare'})[chip.name]||'Common';}
   function inspect(chip,anchor,placed,pinned=true){
    if(locked||!anchor.isConnected)return;clearTimeout(hoverTimer);info.replaceChildren();infoAnchor=anchor;
-   const head=el('header','peek-heading');head.append(el('small','stamp',rarity(chip)),el('strong','',chip.name));
+   const head=el('header','peek-heading');head.append(el('small','stamp',api.rarity(chip)),el('strong','',chip.name));
    const close=el('button','quiet','✕');close.setAttribute('aria-label','Chip-Info schließen');close.onclick=()=>{closeInfo();anchor.focus({preventScroll:true});};head.append(close);info.append(head,el('p','',chip.effect));
    const betPreview=api.previewChip?.(chip.id);if(betPreview)info.append(el('p','peek-modifier',betPreview));
-   if(typeof chip.streak==='number')info.append(el('p','', 'Serie: '+chip.streak));
+   for(const status of api.chipStates?.(chip)||[])info.append(el('p','peek-state',status));
    for(const name of chip.mutations)info.append(el('p','peek-modifier',name+' · '+api.mutations[name].description));
    if(chip.curse)info.append(el('p','peek-modifier',chip.curse.name+' · '+api.curses[chip.curse.name].description+(chip.curse.name==='Fragile'?' · '+chip.curse.losses+'/3 Verluste':'')+(chip.curse.name==='Addicted'?' · Letzte Wettart: '+(chip.curse.lastFamily||'keine'):'')));
-   const synergies=api.synergies().filter(s=>s.reason.includes(chip.name)||chip.mutations.some(m=>s.reason.includes(m)));
-   for(const s of synergies)info.append(el('p','peek-synergy','✦ '+s.name+' · '+s.description));
+   const synergies=api.synergies().filter(s=>(s.sources||[]).includes(chip.name));
+   for(const s of synergies)info.append(el('p','peek-synergy','✦ '+s.name+' · '+(s.bonusType==='bonus'?'SONDERBONUS':'ZUSAMMENSPIEL')+' · '+s.description));
    const action=el('button','purchase-button',placed?'ZURÜCKNEHMEN':'ZUM SETZEN WÄHLEN');action.id='peek-action';action.disabled=api.getState().phase!=='ready';action.onclick=()=>{closeInfo();api.chooseChip(chip.id,placed);};info.append(action);
    info.hidden=false;info.dataset.pinned=String(pinned);position(info,anchor);
   }
@@ -150,15 +152,18 @@
   function roomReceipt(){
    const s=api.getState();if(!['won','lost'].includes(s.phase))return;
    closeInfo();receipt.replaceChildren();receipt.append(el('small','stamp',s.phase==='won'?'ABGERECHNET ✓':'RUN BEENDET'),el('h2','',s.phase==='won'?'TISCH GESCHAFFT':'DAS HAUS GEWINNT'));
-   const rows=el('dl','receipt-lines');for(const [name,value]of [['Punkte',integer(s.score)+' / '+integer(s.target)],['Raumprämie',s.phase==='won'?'+'+(api.room().payout||10)+' ◉':'0 ◉'],['Stärkster Spin',integer(s.bestSpin)]])rows.append(el('dt','',name),el('dd','',value));receipt.append(rows);
+   const rows=el('dl','receipt-lines');for(const [name,value]of [['Punkte',integer(s.score)+' / '+integer(s.target)],['Raumprämie',s.phase==='won'?'+'+(api.room().payout||10)+' ◉':'0 ◉'],['Stärkster Spin',integer(s.bestSpin)]])rows.append(el('dt','',name),el('dd','',value));receipt.append(rows);for(const award of s.lastSpin?.tokenAwards||[])receipt.append(el('p','receipt-activated',award));
    const activated=[...new Set([...s.breakdown.filter(b=>b.won).map(b=>b.name),...s.relicTrace.filter(r=>r.triggered).map(r=>r.name),...(s.synergyTrace||[]).map(t=>t.split(' · ')[0])])];
    receipt.append(el('p','receipt-activated',activated.length?'Aktiviert: '+activated.join(' · '):'Kein Chip getroffen.'));
-   const go=el('button','spin-button',s.phase==='won'?'WEITER →':'ERGEBNIS SCHLIESSEN');go.id='receipt-continue';go.onclick=()=>{receipt.close();if(api.getState().phase==='won')api.advance();};receipt.append(go);receipt.showModal();go.focus();
+   const press=api.press?.();
+   if(press){const section=el('section','press-choice');section.append(el('strong','','NOCH EIN DREH?'),el('p','','Sicher: '+press.payout+' ◉ (bereits gutgeschrieben). Treffer: +'+press.bonus+' ◉. Fehlspin: −'+press.loss+' ◉. Tischsieg und Punkte bleiben erhalten.'),el('p','','Unveränderte Wetten: '+press.bets.map(b=>b.type==='number'?'Zahl '+b.value:String(b.value)).join(' · ')),el('p','','Mindestens ein Treffer: '+press.hits+' / '+press.total+' ('+(100*press.hits/press.total).toFixed(1)+' %). Einmal pro Floor; keine Chip-/Relic- oder Feld-Auslösung.'));const risk=el('button','quiet','NOCH EIN DREH · +'+press.bonus+' / −'+press.loss+' ◉');risk.id='press-spin';risk.onclick=()=>{const result=api.settlePress('spin');if(!result.ok)return;risk.disabled=true;receipt.close();roomReceipt();};section.append(risk);receipt.append(section);}
+   if(s.press?.status==='resolved'&&s.press.choice==='spin')receipt.append(el('p','press-result','Bonusdreh: '+s.press.result.number+' · '+(s.press.hit?'Treffer +':'Kein Treffer ')+s.press.delta+' ◉. Tischsieg gesichert.'));
+   const go=el('button','spin-button',s.phase==='won'?(press?'AUSZAHLEN →':'WEITER →'):'ERGEBNIS SCHLIESSEN');go.id='receipt-continue';go.onclick=()=>{receipt.close();if(api.getState().phase==='won')api.advance();};receipt.append(go);receipt.showModal();go.focus();
   }
   const synergyDialog=dialog('synergy-dialog','Aktive Synergien');
   function showSynergies(){synergyDialog.replaceChildren(el('h2','','DEIN ZUSAMMENSPIEL'));const active=api.synergies();
    if(!active.length)synergyDialog.append(el('p','','Noch keine aktive Kombination. Chip- und Relic-Effekte findest du in deinem Build.'));
-   active.forEach(s=>{const card=el('article','synergy-card active');card.append(el('strong','',s.name),el('small','',s.reason),el('p','',s.description));synergyDialog.append(card);});
+   active.forEach(s=>{const card=el('article','synergy-card active');card.append(el('strong','',s.name),el('small','',(s.bonusType==='bonus'?'SONDERBONUS':'ZUSAMMENSPIEL')+' · '+(s.sources||[]).join(' + ')+' · '+s.reason),el('p','',s.description));synergyDialog.append(card);});
    const close=el('button','quiet','ZURÜCK');close.onclick=()=>synergyDialog.close();synergyDialog.append(close);synergyDialog.showModal();
   }
   const bench=dialog('chip-workbench','Chip-Werkbank');let workChip=null,workMutation='Polished';

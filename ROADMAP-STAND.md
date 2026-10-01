@@ -1,3 +1,11 @@
+# Aktueller Stand: V2.1 – Build-Kontrolle und Klarheit
+
+01.10.2026. Der aktuelle vollständige Stand mit allen elf Arbeitsbereichen, 17 Abschlussfragen, Messungen und Testgrenzen steht in [CONTROL-UPDATE.md](CONTROL-UPDATE.md). 33 Chips, 26 Relics, 7 Mutationen, 10 Rad-Werkzeuge; 159 Modelltests. Nächster sinnvoller Schritt: menschliche Balance-/Pacing-Tests und echte iPad-Safari-Prüfung.
+
+## Historischer Versionsverlauf
+
+Die folgenden Abschnitte dokumentieren frühere Patches. Ihre Zählstände und damaligen nächsten Schritte sind keine aktuelle Aufgabenliste.
+
 # V1.5: Game-Feel und UI/UX-Polish
 
 Stand: 30.09.2026. Bestehende Spielregeln, Chip-/Relic-Werte, Zufalls-Slots, verzweigte Maps und Rad-Werkzeuge bleiben erhalten.

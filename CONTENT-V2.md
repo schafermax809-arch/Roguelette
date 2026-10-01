@@ -1,6 +1,8 @@
 # Roguelette V2.0 – Die Roulette-Maschine
 
-13 Chips, 10 Relics, 3 Mutationen, 4 Feldmarkierungen/Werkzeuge, 9 benannte Verbindungen, 8 Tischregeln, 8 Events und 5 Herausforderungen.
+Dieser Katalog beschreibt den V2.0-Zuwachs (nicht den Gesamtbestand): 13 Chips, 10 Relics, 3 Mutationen, 4 Feldmarkierungen/Werkzeuge, 9 benannte Verbindungen, 8 Tischregeln, 8 Events und 5 Herausforderungen.
+
+Aktuell: 33 Chips, 26 Relics, 7 Mutationen, 10 Werkzeuge insgesamt. Geänderte Verbindungen, Beschaffung, Events und Balance sind verbindlich im [2.1-Bericht](CONTROL-UPDATE.md) beschrieben; Tabellen unten dokumentieren ansonsten V2.0.
 
 ## 1. Neue Chips
 
@@ -30,7 +32,7 @@
 | Parity Gear | Uncommon · parity | Mindestens eine Gerade/Ungerade-Wette gewinnt: Spin ×1,6. |
 | Rangefinder | Uncommon · range | LOW oder HIGH gewinnt und eine andere Wettart gewinnt mit: Spin ×1,7. |
 | Zero Bell | Rare · zero | Bei Nulltreffer: +50 % der Chip-Basiswerte als einmalige Zusatzwertung. Kein erneutes Auslösen. |
-| Kiln | Rare · hot, wheel | Auf Hot-Feldern ab dem zweiten Trefferdurchlauf: +25 % je bisherigem Feldtreffer, höchstens ×2. |
+| Kiln | Rare · hot, wheel | Auf Hot-Feldern ab dem zweiten Trefferdurchlauf: +25 % je bisherigem erfolgreichen Treffer derselben Zahl, höchstens ×2. |
 | Closed Circuit | Epic · wheel, precision | Höchstens acht verschiedene Zahlen im permanenten Rad und ein Gewinner: Spin ×1,8. |
 | Reserve Note | Rare · economy, gilded | Auf Gilded-Feldern und bei mindestens 15 Münzen vor dem Spin: Spin ×1,75. |
 | Mint Ledger | Uncommon · economy | Nach einem gewonnenen Tisch: +1 Münze je zehn gehaltenen Münzen, höchstens +4. Einmal pro Tisch. |
@@ -77,9 +79,9 @@ Duplicate/Clone/Mitosis kopieren Markierungen; Rewrite/Repaint erhalten sie. Neu
 | Markierung | Effekt |
 | --- | --- |
 | Gilded · Vergoldet | Bei mindestens einer gewonnenen Wette auf diesem Feld: +2 Münzen, einmal pro Spin. |
-| Hot · Heiß | Je vorherigem erfolgreichen Treffer dieses Felds im Raum +25 % auf die Chip-Summe, bis ×3. Hitze endet am Raumende. |
+| Hot · Heiß | Je vorherigem erfolgreichen Treffer derselben Zahl im Raum +25 % auf die Chip-Summe, bis ×3. Hitze endet am Raumende. |
 | Boosted · Verstärkt | Chip-Summe auf diesem Feld ×1,5, vor Relics. |
-| Cursed · Verflucht | Chip-Summe ×2. Jede Landung auf diesem Feld kostet 1 Münze, soweit vorhanden. |
+| Cursed · Verflucht | Chip-Summe ×2. Jede Landung auf diesem Feld kostet 1 Münze, soweit vor dem Spin vorhanden; ×2 gilt auch ohne Münzen. |
 
 Kleine Zeichen markieren die Felder. RAD ANSEHEN öffnet ihre Touch-taugliche Übersicht. Keine dauerhafte Karte über dem Rad. Hitze bleibt bei ihren Feldern, wenn andere Felder eingefügt/gelöscht werden, und endet am nächsten Tisch.
 
@@ -103,8 +105,8 @@ Neue reguläre Tische ab Floor 2 erhalten Regeln. Map-Vorschau und antippbare Ti
 | Event | Angebote |
 | --- | --- |
 | Der Blattgoldhändler | Gilded prägen · 7 Münzen; Markierung entfernen → +6 Münzen |
-| Der Heizer | Hot prägen · 5 Münzen; Markierung entfernen → +6 Münzen |
-| Der Überdruck | Boosted prägen · 9 Münzen; Markierung entfernen → +6 Münzen |
+| Der Heizer | Hot prägen · 5 Münzen; Markierung gegen Rad Token abgeben |
+| Der Überdruck | Zwei Markierungen zu Boosted auf dem gewählten Feld verschmelzen; zweite Markierung wird verbraucht |
 | Der dunkle Stempel | Cursed prägen · 0 Münzen; Markierung entfernen → +6 Münzen |
 | Die Zahlenpresse | Feld kopieren · halbe Kasse (mind. 4) |
 | Der leere Sitz | Gewähltes Feld entfernen · −5 Münzen; Gewähltes Feld kopieren → +5 Münzen |

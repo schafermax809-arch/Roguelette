@@ -4,11 +4,11 @@
  const KEY='roguelette-onboarding-v1';
  const concepts={
   map:['DEIN WEG','Du bist am markierten Raum. Wähle ein verbundenes Symbol, prüfe den Raum und tippe auf BETRETEN. Andere Wege sind gesperrt.'],
-  shop:['MÜNZEN → DEIN BUILD','Ein Slot-Kauf liefert sofort einen zufälligen Chip, Relic oder ein Rad-Werkzeug. Chips belegen Chip-Plätze; eine Platzmarke erhöht die Kapazität sofort.'],
+  shop:['MÜNZEN → DEIN BUILD','Gemischte Slots drehen sofort; garantierte Chip-, Relic- und Rad-Tokens kommen in deine Token-Tasche. Chips belegen Chip-Plätze; eine Platzmarke erhöht die Kapazität sofort.'],
   workshop:['WERKSTATT','Nimm ein kostenloses Rad-Werkzeug oder öffne die Chip-Werkbank: Chip wählen → Prägung und Vorher/Nachher prüfen → bezahlen.'],
   relic:['RELIC ENTDECKT','Relics wirken auf deinen Run, ohne Chip-Plätze zu belegen. Sie werden von links nach rechts ausgewertet. Antippen zeigt die Bedingung.'],
   mutation:['MUTATION','Ein Chip mit ✦ hat einen zusätzlichen Effekt. Tippe ihn an (Desktop: Shift-Klick), um die Mutation zu prüfen.'],
-  synergy:['SYNERGIE ENTDECKT','Deine Chips, Relics und dein Rad erfüllen eine gemeinsame Bedingung. Unter ✦ siehst du die aktive Verstärkung.'],
+  synergy:['SYNERGIE ENTDECKT','Unter ✦ sind Sonderboni und Zusammenspiel getrennt. Ein benannter Zusammenhang allein vergibt keinen zusätzlichen Bonus.'],
   tool:['RAD-WERKZEUG','Damit veränderst du dauerhaft Felder deines Rads. Werkzeug antippen → Feld wählen → Vorschau prüfen → anwenden.'],
   boss:['BOSS-TISCH','Hier gilt eine Sonderregel. Sie steht über dem Rad. Erreiche weiterhin das Tischziel, bevor die Spins ausgehen.'],
   event:['EREIGNIS','Wähle genau eine Option. Die jeweilige Folge steht an der Auswahl; dein Build und deine Münzen bleiben Teil des Runs.'],
@@ -19,10 +19,15 @@
  const number=n=>new Intl.NumberFormat('de-DE',{maximumFractionDigits:2}).format(n);
  function previewText(p){if(!p)return '';if(p.blocked)return 'Erst alle Greedy-Chips setzen. Chance: '+p.hits+' / '+p.total;
   const range=(a,b)=>'+'+number(a)+(a!==b?' bis +'+number(b):'');
-  return 'Chance: '+p.hits+' / '+p.total+' · Treffer: '+range(p.min,p.max)+(p.multiple?' im gesamten Spin':'')+(p.varies?' (abhängig von Feld/Zusatzeffekten)':'');
+  return 'Chance: '+p.hits+' / '+p.total+' · Treffer: '+range(p.min,p.max)+(p.multiple?' im gesamten Spin':'')+(p.varies?' (abhängig von Feld/Zusatzeffekten)':'')+(p.remaining!==undefined?' · Noch '+number(p.remaining)+' Punkte in '+p.spins+' Spins':'');
  }
  function create(api){
   const $=s=>document.querySelector(s),el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text)n.textContent=text;return n;};
+  const context=el('aside','context-preview ticket');context.id='context-preview';context.hidden=true;context.setAttribute('aria-label','Wettvorschau');document.body.append(context);
+  function contextual(id,type,value){const p=api.preview(id,type,value);if(!p)return;context.replaceChildren(el('strong','',name(type,value)),el('p','',previewText(p)));for(const status of p.states||[])context.append(el('small','',status));if(p.rule)context.append(el('small','',p.rule));const close=el('button','quiet','✕');close.setAttribute('aria-label','Wettvorschau schließen');close.onclick=()=>context.hidden=true;context.append(close);context.hidden=false;const box=$('.bets-panel').getBoundingClientRect(),rect=context.getBoundingClientRect();context.style.left=Math.max(12,Math.min(box.left,innerWidth-rect.width-12))+'px';context.style.top=Math.max(12,Math.min(box.bottom+6,innerHeight-rect.height-12))+'px';}
+  document.addEventListener('scroll',event=>{if(!context.contains(event.target))context.hidden=true;},true);
+  window.addEventListener('resize',()=>context.hidden=true);
+  document.addEventListener('pointerdown',event=>{if(!context.contains(event.target)&&!event.target.closest('.bet-cell'))context.hidden=true;});
   let data;try{data=normalize(JSON.parse(localStorage.getItem(KEY)));}catch{data=normalize();}
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(data));}catch{}};
   const card=el('aside','lesson-card ticket');card.id='onboarding-card';card.hidden=true;card.setAttribute('aria-label','Spielhinweis');
@@ -38,17 +43,10 @@
    card.style.top=Math.max(y+12,Math.min(r.y+(r.height-box.height)/2,y+height-box.height-12))+'px';
   }
   function preview(type,value){const s=api.getState();if(s.phase!=='ready')return;const bet=s.placedBets.find(b=>b.type===type&&b.value===value),id=s.selectedChip??bet?.chip.id;if(id==null)return;
-   candidate={id,type,value};previewClosed=false;update();
-  }
-  function addPreview(s){previewBox.replaceChildren();let bet=candidate;
-   if(!bet&&!previewClosed&&s.placedBets.length){const last=s.placedBets.at(-1);bet={id:last.chip.id,type:last.type,value:last.value};}
-   if(!bet||!s.chips.some(c=>c.id===bet.id))return;
-   const result=api.preview(bet.id,bet.type,bet.value);if(!result)return;
-   previewBox.append(el('strong','',name(bet.type,bet.value)),el('p','',previewText(result)));
-   if(!result.blocked&&result.effects.length>1){previewBox.append(el('p','preview-effects',result.effects.slice(0,2).map(e=>e.name+' '+e.label).join(' · ')));const details=el('details'),summary=el('summary','','Chip-Rechnung');details.append(summary);for(const effect of result.effects)details.append(el('div','',effect.name+' · '+effect.label));details.append(el('p','','Danach wirken Relics und Tischregeln. Zufällige Zusatzwertungen sind in der Spanne enthalten.'));previewBox.append(details);}
+   candidate={id,type,value};previewClosed=false;contextual(id,type,value);update();
   }
   function update(){
-   const s=api.getState();clean();
+   const s=api.getState();clean();if(s.phase!=='ready'||document.querySelector('dialog[open]'))context.hidden=true;
    if(candidate&&s.selectedChip!==candidate.id&&!s.placedBets.some(b=>b.chip.id===candidate.id&&b.type===candidate.type&&b.value===candidate.value))candidate=null;
    if(!api.started()||$('#start-screen').open){hide();return;}
    if(data.replay){hide();return;}
@@ -62,7 +60,7 @@
     if(s.placedBets.length){title.textContent='3 · SCHLAGE DEN TISCH';body.textContent='Erreiche '+number(s.target)+' Punkte in '+s.spinsLeft+' Spins. 4 · DREH DAS RAD – jeder Treffer zählt zum Tischziel.';$('.stats-panel').classList.add('learn-focus');$('#spin').classList.add('learn-focus');}
     else if(s.selectedChip!=null){title.textContent='2 · SETZE DEINEN CHIP';body.textContent='Außenwette: +20 bei Treffer. Einzelne Zahl: +100, aber seltener. Wähle ein Feld.';$('#outside-bets').classList.add('learn-focus');$('#number-bets').classList.add('learn-focus');}
     else{title.textContent='1 · WÄHLE EINEN CHIP';body.textContent='Chips bestimmen die Punkte deiner Wette. Wähle deinen Basic-Chip. Auf Touch: antippen, dann ZUM SETZEN WÄHLEN.';$('#chips').classList.add('learn-focus');}
-    dismiss.textContent='TUTORIAL ÜBERSPRINGEN';addPreview(s);card.hidden=false;position();return;
+    dismiss.textContent='TUTORIAL ÜBERSPRINGEN';previewBox.replaceChildren();card.hidden=false;position();return;
    }
    // One relevant concept at a time; dismissing never opens the next card immediately.
    const discoveries=[...(s.relics.length?['relic']:[]),...(s.chips.some(c=>c.mutations.length)?['mutation']:[]),...(api.synergies().length?['synergy']:[]),...(s.items.length?['tool']:[])];

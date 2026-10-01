@@ -22,7 +22,7 @@ fs.mkdirSync(out,{recursive:true});
       boxes:Object.fromEntries(selectors.map(s=>[s,rect(document.querySelector(s))])),
       controls:[...document.querySelectorAll('.app button')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden').map(e=>{
        const r=rect(e),hit=document.elementFromPoint(r.x+r.w/2,r.y+r.h/2);
-       return {id:e.id||e.className,...r,reachable:e.contains(hit),panel:rect(e.closest('.panel')||document.querySelector('.app'))};
+       return {id:e.id||e.className,...r,reachable:e.contains(hit),cover:hit?.id||hit?.className,panel:rect(e.closest('.panel')||document.querySelector('.app'))};
       }),
       wrappers:['html','body','.app','.game-layout'].map(s=>({s,overflow:getComputedStyle(document.querySelector(s)).overflow,transform:getComputedStyle(document.querySelector(s)).transform}))};
     });
@@ -36,7 +36,7 @@ fs.mkdirSync(out,{recursive:true});
     assert(m.boxes['.wheel-panel'].bottom<=m.boxes['.inventory'].y+1,label+' wheel overlaps inventory');
     assert(m.boxes['.wheel-panel'].right<=m.boxes['.bets-panel'].x&&m.boxes['.bets-panel'].right<=m.boxes['.stats-panel'].x,label+' keep three columns');
     assert(m.boxes['.wheel-stage'].y>=m.boxes['.wheel-panel'].y-1,label+' wheel exceeds its grid row');
-    for(const r of m.controls){assert(r.y>=0&&r.bottom<=m.height+1&&r.x>=0&&r.right<=m.width+1,label+' clipped control '+JSON.stringify(r));assert(r.reachable,label+' covered control '+r.id);assert(r.y>=r.panel.y-5&&r.bottom<=r.panel.bottom+5,label+' control outside panel '+r.id);}
+    for(const r of m.controls){assert(r.y>=0&&r.bottom<=m.height+1&&r.x>=0&&r.right<=m.width+1,label+' clipped control '+JSON.stringify(r));assert(r.reachable,label+' covered control '+r.id+' by '+r.cover);assert(r.y>=r.panel.y-5&&r.bottom<=r.panel.bottom+5,label+' control outside panel '+r.id);}
     assert(m.wrappers.every(s=>!['hidden','clip'].includes(s.overflow)&&s.transform==='none'),label+' must fit without masking/scaling');
    }
    async function sweep(label){for(const height of [820,780,744,720,700,680,650,600]){await p.setViewportSize({width:1180,height});await check(label+'-'+height);}}

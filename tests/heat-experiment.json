@@ -1,0 +1,20 @@
+{
+  "description": "10000 six-spin rooms, 19 pockets; 1/3/6 same-number Hot pockets. All Hot landings have a winning exact bet. No payout or early stopping; availability experiment only. Seed 12345, shared LCG stream.",
+  "result": {
+    "1": {
+      "landings": 3225,
+      "physicalRepeat": 432,
+      "numberRepeat": 432
+    },
+    "3": {
+      "landings": 9517,
+      "physicalRepeat": 1124,
+      "numberRepeat": 3083
+    },
+    "6": {
+      "landings": 19121,
+      "physicalRepeat": 2375,
+      "numberRepeat": 10129
+    }
+  }
+}

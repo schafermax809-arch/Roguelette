@@ -1,0 +1,4 @@
+// Controlled availability comparison, not a full-run win-rate estimate.
+const fs=require('fs');let seed=12345;const random=()=>((seed=(1664525*seed+1013904223)>>>0)/2**32);const result={};
+for(const copies of [1,3,6]){const r={landings:0,physicalRepeat:0,numberRepeat:0};for(let room=0;room<10000;room++){const heat={};let hits=0;for(let spin=0;spin<6;spin++){const i=Math.floor(random()*19);if(i>=copies)continue;r.landings++;if(heat[i])r.physicalRepeat++;if(hits)r.numberRepeat++;heat[i]=(heat[i]||0)+1;hits++;}}result[copies]=r;}
+fs.writeFileSync('tests/heat-experiment.json',JSON.stringify({description:'10000 six-spin rooms, 19 pockets; 1/3/6 same-number Hot pockets. All Hot landings have a winning exact bet. No payout or early stopping; availability experiment only. Seed 12345, shared LCG stream.',result},null,2));console.log(result);
