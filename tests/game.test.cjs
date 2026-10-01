@@ -108,5 +108,5 @@ test('Spinning locks wheel edits and chip removal',()=>{
 test('Rewards progress through all mutation and wheel item types',()=>{
  const s=g.createState();const mutations=new Set(),items=new Set();
  for(let round=1;round<=12;round++){s.round=round;const offers=g.tableRewards(s);mutations.add(offers[0].name);items.add(offers[2].name)}
- assert.equal(mutations.size,4);assert.equal(items.size,6);
+ assert.equal(mutations.size,4);assert.equal(items.size,10);
 });

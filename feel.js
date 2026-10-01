@@ -13,10 +13,12 @@
    effects.forEach((effect,index)=>events.push({kind:index===0?'bet':'chip',chipId:entry.chipId,type:entry.betType,value:entry.betValue,name:index===0?entry.name+' · '+({red:'ROT',black:'SCHWARZ',odd:'UNGERADE',even:'GERADE',low:'LOW',high:'HIGH'}[entry.betValue]??entry.betValue)+' getroffen':effect.name,label:effect.label}));
   }
   if(!spin.winners){const bets=[...new Set(state.breakdown.map(e=>({red:'ROT',black:'SCHWARZ',odd:'UNGERADE',even:'GERADE',low:'LOW',high:'HIGH'}[e.betValue]??String(e.betValue))))];events.push({kind:'miss',name:'Wette: '+bets.join(' · '),label:'Kein Treffer → +0'});}
+  for(const e of (state.depth?.trace||[]).filter(e=>e.source!=='economy'))events.push({kind:'wheel',name:e.name,label:e.label});
   for(const r of state.relicTrace.filter(r=>r.triggered&&r.before!==r.after))events.push({kind:'relic',id:r.id,name:r.name,label:r.effect});
   for(const note of state.synergyTrace||[])events.push({kind:'synergy',name:note.split(' · ')[0],label:note.split(' · ').slice(1).join(' · ')});
   for(const [key,name]of [['bossPenalty','Haussteuer'],['housePenalty','Hausanteil'],['cursePenalty','Volatile']])if(spin[key])events.push({kind:'adjustment',name,label:'−'+integer(spin[key])});
   if(spin.zeroMultiplier!==1)events.push({kind:'adjustment',name:'Null-Regel',label:'×0,75'});
+  for(const e of (state.depth?.trace||[]).filter(e=>e.source==='economy'))events.push({kind:'economy',name:e.name,label:e.label});
   events.push({kind:'total',name:spin.finalScore?'Spin gesamt':'Kein Treffer',label:'+'+integer(spin.finalScore),value:spin.finalScore});
   return events;
  }

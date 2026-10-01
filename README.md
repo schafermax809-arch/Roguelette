@@ -1,4 +1,4 @@
-# Roguelette — V1.6 · Lernen am Tisch
+# Roguelette — V2.0 · Die Roulette-Maschine
 
 Ein Roulette-Roguelike auf einem gezeichneten Pokertisch. Starte mit einem Basic-Chip, baue dein Rad und deinen Build um und fordere The House heraus.
 
@@ -78,3 +78,7 @@ Neue Tests: onboarding.test.cjs, onboarding-browser.cjs und onboarding-concepts-
 ## V1.6.1 – Ruhiger Tisch
 
 Automatische Wettvorschauen und Entdeckungskarten über dem Rad im normalen Spiel entfernt. Vorschau weiterhin in der Chip-Info; kurze Erst-Run-Einführung und Raumhinweise bleiben. Spin-Zeile auf SPIN ↗ verkürzt; Plus-Punkte bleiben auch bei großen Zahlen einzeilig. Auf WebKit in 1180×600, 1366×768 und 390×844 geprüft.
+
+## V2.0 – Content & Gameplay-Tiefe
+
+Alle Inhalte, Freischaltungen, Tests und Grenzen: [CONTENT-V2.md](CONTENT-V2.md). Zusätzlich auszuliefern: `depth.js`, `depth-ui.js`, `depth.css`.

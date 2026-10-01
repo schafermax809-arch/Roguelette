@@ -1,0 +1,21 @@
+{
+  "policy": "Approximate one-spin planning (no Echo/curse forecast); actual spins use real resolver; safe events, buys slots, no replacements/refills or unlocks. Not a human win-rate estimate.",
+  "runs": 60,
+  "reached": [
+    60,
+    25,
+    11,
+    4
+  ],
+  "wins": 4,
+  "winningBuilds": [
+    "Basic/Streak/Cinder/Dividend/Cinder/Royal",
+    "Basic/Drifter/Horizon/Anchorpoint/Collector/Crimson",
+    "Basic/Drifter/Horizon/Horizon/Prime Lens/Surveyor",
+    "Basic/Collector/Drifter/Horizon/Horizon/Basic"
+  ],
+  "uniqueBuilds": 29,
+  "bestSpin": 720,
+  "meanCoins": 7.98,
+  "meanPurchases": 2.8
+}

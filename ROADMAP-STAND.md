@@ -915,3 +915,7 @@ Kurze überspringbare Einführung im ersten echten Run, gespeicherte einmalige K
 ## V1.6.1 – Ruhiger Tisch
 
 Automatische Wettvorschauen und Entdeckungskarten über dem Rad im normalen Spiel entfernt. Vorschau weiterhin in der Chip-Info; kurze Erst-Run-Einführung und Raumhinweise bleiben. Spin-Zeile auf SPIN ↗ verkürzt; Plus-Punkte bleiben auch bei großen Zahlen einzeilig. Auf WebKit in 1180×600, 1366×768 und 390×844 geprüft.
+
+## V2.0 – Die Roulette-Maschine
+
+13 Chips, 10 Relics, 3 Mutationen, 4 Feldmarkierungen/Werkzeuge, 9 benannte Verbindungen, 8 Tischregeln ab Floor 2, 8 Events, 5 Herausforderungen und eine persistente Sammlung. Details: CONTENT-V2.md.
