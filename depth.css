@@ -2,3 +2,30 @@
 #inspect-wheel{font-size:9px;min-height:28px;padding:3px 6px;flex-shrink:0}#table-rule{font-size:9px;max-width:55%;min-width:0;white-space:normal;text-align:right;margin-left:auto}#table-rule[hidden]{display:none}
 .depth-inspector{width:min(800px,calc(100vw - 28px));max-height:calc(100dvh - 28px);overflow:auto;padding:18px}.depth-inspector h2{color:var(--paper-ink)}.depth-inspector>p{font-size:12px;line-height:1.5}.pocket-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-block:16px}.pocket-card{display:flex;flex-direction:column;gap:7px;border:2px solid #746343;padding:10px;background:#d3c094;color:#253f32}.pocket-card.red{border-top:6px solid #a44842}.pocket-card.black{border-top:6px solid #23342d}.pocket-card.green{border-top:6px solid #5b9767}.pocket-card span,.pocket-card small{font-size:10px}.pocket-card p{font-size:11px;line-height:1.4;margin:0}.synergy-discovery{position:fixed;right:16px;bottom:16px;z-index:120;max-width:min(340px,calc(100vw - 32px));padding:12px;pointer-events:none;display:flex;flex-direction:column;gap:7px;font-size:11px}.synergy-discovery[hidden]{display:none}.depth-collection{grid-column:1/-1;border-top:2px dashed #ad9c71;margin-top:16px;padding-top:12px}.depth-collection summary{min-height:44px;padding:10px;cursor:pointer}.depth-collection ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;padding:10px;list-style:none;font-size:12px}.build-wheel-summary{border-top:2px dashed #ad9c71;padding-top:12px;margin-top:16px;font-size:12px;line-height:1.5}
 @media(min-width:1100px) and (max-height:700px){#inspect-wheel{min-height:22px;font-size:8px}.wheel-panel{gap:0}}
+/* Rule-specific ink printed into the felt. No extra layout height or hit targets. */
+.game-layout[data-table-rule]{
+ --rule-ink:#b8e3ec;--rule-felt:#254c61;--rule-light:#739ead38;
+ background-color:var(--rule-felt);
+ background-image:var(--rule-pattern),radial-gradient(ellipse at 40% 25%,var(--rule-light),transparent 70%),repeating-linear-gradient(0deg,#00000012 0 1px,transparent 1px 3px);
+}
+.game-layout[data-table-rule]::before{border-color:var(--rule-ink);opacity:.48;background:radial-gradient(ellipse at center,transparent 55%,var(--rule-light));animation:table-rule-arrive 900ms ease-out both}
+.game-layout[data-table-rule] #table-rule{color:var(--rule-ink);background:#101c23b8;border:1px solid var(--rule-ink);box-shadow:0 2px 0 #101b20;padding:5px 8px;font-size:clamp(9px,.85vw,12px);line-height:1.15;max-width:65%;text-align:center;letter-spacing:.3px}
+.game-layout[data-table-rule=precision]{--rule-pattern:repeating-radial-gradient(circle at 24% 40%,transparent 0 43px,#a6dfea16 44px 45px,transparent 46px 78px)}
+.game-layout[data-table-rule=parity]{--rule-felt:#383b67;--rule-ink:#d0c6ff;--rule-light:#9687d33b;--rule-pattern:repeating-linear-gradient(90deg,transparent 0 44px,#d0c6ff0b 44px 88px)}
+.game-layout[data-table-rule=range]{--rule-felt:#245759;--rule-ink:#a6e6d7;--rule-light:#91d8c233;--rule-pattern:linear-gradient(170deg,transparent 45%,#a6e6d71f 45.2% 45.5%,transparent 45.7% 54%,#a6e6d71f 54.2% 54.5%,transparent 54.7%)}
+.game-layout[data-table-rule=color]{--rule-felt:#542e3c;--rule-ink:#f0b5b3;--rule-light:#d4869138;--rule-pattern:repeating-linear-gradient(135deg,#d4777117 0 48px,#151e292c 48px 96px)}
+.game-layout[data-table-rule=heat]{--rule-felt:#643b2b;--rule-ink:#ffd096;--rule-light:#f99a413f;--rule-pattern:radial-gradient(ellipse at 50% 110%,#f18c484f,transparent 67%)}
+.game-layout[data-table-rule=heat]::before{animation:table-embers 5s ease-in-out infinite alternate}
+.game-layout[data-table-rule=toll]{--rule-felt:#5b4c29;--rule-ink:#ffe0a0;--rule-light:#eac46935;--rule-pattern:repeating-linear-gradient(115deg,transparent 0 60px,#ffe0a00e 61px 63px,transparent 64px 82px)}
+.game-layout[data-table-rule=narrow]{--rule-felt:#3f4059;--rule-ink:#ddd2f1;--rule-light:#aaa0cb30;--rule-pattern:radial-gradient(circle at 28% 50%,#cfc4e81c 0 12%,transparent 12.3%),radial-gradient(circle at 72% 50%,#cfc4e81c 0 12%,transparent 12.3%)}
+.game-layout[data-table-rule=spread]{--rule-felt:#3e532d;--rule-ink:#d9e9a7;--rule-light:#c5db8a30;--rule-pattern:repeating-linear-gradient(90deg,transparent 0 79px,#d9e9a710 80px 81px),repeating-linear-gradient(0deg,transparent 0 59px,#d9e9a710 60px 61px)}
+/* Illuminate the relevant betting families without changing chip or number colours. */
+[data-table-rule=precision] .bet-cell[data-type=number],
+[data-table-rule=parity] .bet-cell:is([data-value=odd],[data-value=even]),
+[data-table-rule=range] .bet-cell:is([data-value=low],[data-value=high]),
+[data-table-rule=color] .bet-cell:is([data-value=red],[data-value=black]),
+[data-table-rule=toll] .bet-cell:is([data-value=red],[data-value=black]){border-color:var(--rule-ink);box-shadow:inset 0 0 12px var(--rule-light),0 2px 0 #122b24}
+@keyframes table-rule-arrive{from{opacity:0}to{opacity:.48}}
+@keyframes table-embers{from{opacity:.3}to{opacity:.65}}
+@media(prefers-reduced-motion:reduce){.game-layout[data-table-rule]::before{animation:none;opacity:.48}}
+@media(max-width:700px){.game-layout[data-table-rule] #table-rule{font-size:9px;padding:5px;letter-spacing:0}}
